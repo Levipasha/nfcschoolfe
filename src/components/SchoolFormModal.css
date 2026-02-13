@@ -1,0 +1,174 @@
+/* Premium School Form Modal Styles */
+.school-modal {
+    max-width: 550px;
+    border: none;
+    overflow: hidden;
+}
+
+.school-modal .modal-header {
+    background: var(--primary-gradient);
+    padding: var(--spacing-xl);
+    color: white;
+    border-bottom: none;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Subtle pattern for header */
+.school-modal .modal-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    transform: rotate(15deg);
+    pointer-events: none;
+}
+
+.school-modal .modal-header h2 {
+    font-size: 1.75rem;
+    margin: 0;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.school-modal .modal-close {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(4px);
+}
+
+.school-modal .modal-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.school-modal .modal-body {
+    padding: var(--spacing-xl);
+    background: linear-gradient(to bottom, #ffffff, #fcfdff);
+}
+
+/* Enhanced Input Styles */
+.school-modal .input-group {
+    margin-bottom: var(--spacing-xl);
+    transition: transform 0.2s ease;
+}
+
+.school-modal .input-group:focus-within {
+    transform: translateX(4px);
+}
+
+.school-modal .input-label {
+    font-size: 0.95rem;
+    color: var(--gray-700);
+    margin-bottom: var(--spacing-sm);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.school-modal .input-field {
+    border: 2px solid var(--gray-100);
+    background: #f8fafc;
+    padding: 0.85rem 1.15rem;
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.school-modal .input-field:focus {
+    background: white;
+    border-color: var(--primary);
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Error State */
+.school-modal .input-field.error {
+    border-color: var(--danger);
+    background: #fffcfc;
+}
+
+.school-modal .error-text {
+    color: var(--danger);
+    font-size: 0.8rem;
+    margin-top: 4px;
+    display: block;
+    font-weight: 500;
+}
+
+/* Form Help text */
+.school-modal .form-help {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--primary);
+    background: rgba(102, 126, 234, 0.05);
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+}
+
+.school-modal .modal-footer {
+    padding: var(--spacing-lg) var(--spacing-xl);
+    background: #f8fafc;
+    border-top: 1px solid var(--gray-100);
+}
+
+.school-modal .btn {
+    padding: 0.85rem 2rem;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+}
+
+.school-modal .btn-primary {
+    background: var(--primary-gradient);
+    box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
+}
+
+.school-modal .btn-primary:hover {
+    box-shadow: 0 8px 25px rgba(118, 75, 162, 0.4);
+    transform: translateY(-2px) scale(1.02);
+}
+
+.school-modal .btn-secondary {
+    background: white;
+    border: 1px solid var(--gray-200);
+    color: var(--gray-600);
+}
+
+.school-modal .btn-secondary:hover {
+    background: var(--gray-50);
+    color: var(--gray-900);
+    border-color: var(--gray-300);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+
+    .school-modal {
+        margin: 10px;
+        max-height: 95vh;
+    }
+
+    .school-modal .modal-header,
+    .school-modal .modal-body {
+        padding: var(--spacing-lg);
+    }
+}

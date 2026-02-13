@@ -1,0 +1,297 @@
+.upload-modal {
+    max-width: 700px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* Instructions */
+.upload-instructions {
+    background: linear-gradient(135deg, #e0e7ff 0%, #f0e7ff 100%);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.upload-instructions h3 {
+    font-size: 1.125rem;
+    margin-bottom: var(--spacing-md);
+    color: var(--text-primary);
+}
+
+.upload-instructions ol {
+    margin-left: var(--spacing-lg);
+    color: var(--text-secondary);
+}
+
+.upload-instructions li {
+    margin-bottom: var(--spacing-sm);
+}
+
+/* Template Section */
+.template-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.template-section h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-md);
+}
+
+.template-buttons {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+/* School Selection Section */
+.school-selection-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.school-selection-section h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-md);
+}
+
+/* Upload Section */
+.upload-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.upload-section h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-md);
+}
+
+.upload-dropzone {
+    position: relative;
+    border: 2px dashed var(--gray-300);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-2xl);
+    text-align: center;
+    background: var(--bg-secondary);
+    transition: all var(--transition-base);
+    cursor: pointer;
+}
+
+.upload-dropzone:hover {
+    border-color: var(--primary);
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.upload-dropzone.active {
+    border-color: var(--primary);
+    background: rgba(102, 126, 234, 0.1);
+    transform: scale(1.02);
+}
+
+.upload-dropzone.has-file {
+    border-color: var(--success);
+    background: rgba(0, 242, 254, 0.05);
+    cursor: default;
+}
+
+.upload-icon {
+    font-size: 4rem;
+    margin-bottom: var(--spacing-md);
+    opacity: 0.6;
+}
+
+.upload-text {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.upload-hint {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.file-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* File Selected */
+.file-selected {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    background: var(--bg-primary);
+    border-radius: var(--radius-md);
+}
+
+.file-icon {
+    font-size: 3rem;
+}
+
+.file-info {
+    flex: 1;
+    text-align: left;
+}
+
+.file-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.file-size {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.btn-remove-file {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: var(--gray-200);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    transition: all var(--transition-base);
+}
+
+.btn-remove-file:hover {
+    background: var(--danger);
+    color: var(--text-white);
+    transform: scale(1.1);
+}
+
+/* Upload Result */
+.upload-result {
+    background: var(--bg-secondary);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.upload-result h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-lg);
+}
+
+.result-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.result-stat {
+    background: var(--bg-primary);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.result-stat .stat-icon {
+    font-size: 2rem;
+}
+
+.result-stat .stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: var(--spacing-xs);
+}
+
+.result-stat.success .stat-value {
+    color: #10b981;
+}
+
+.result-stat.warning .stat-value {
+    color: #f59e0b;
+}
+
+.result-stat.error .stat-value {
+    color: #ef4444;
+}
+
+.result-stat .stat-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Result Details */
+.result-details {
+    background: var(--bg-primary);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+}
+
+.detail-section {
+    margin-bottom: var(--spacing-lg);
+}
+
+.detail-section:last-child {
+    margin-bottom: 0;
+}
+
+.detail-section h5 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.detail-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.detail-section li {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    padding: var(--spacing-xs) 0;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.detail-section li:last-child {
+    border-bottom: none;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .upload-modal {
+        max-height: 95vh;
+    }
+
+    .template-buttons {
+        flex-direction: column;
+    }
+
+    .template-buttons .btn {
+        width: 100%;
+    }
+
+    .result-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .upload-dropzone {
+        padding: var(--spacing-lg);
+    }
+
+    .file-selected {
+        flex-direction: column;
+        text-align: center;
+    }
+}

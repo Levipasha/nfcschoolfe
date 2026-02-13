@@ -1,0 +1,188 @@
+.school-details-page {
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+.page-header {
+    background: white;
+    padding: 24px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.back-link {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    font-weight: 500;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.back-link:hover {
+    color: #3b82f6;
+}
+
+.school-title-section h1 {
+    font-size: 2rem;
+    color: #1e293b;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.code-tag {
+    background: #eff6ff;
+    color: #3b82f6;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.school-info {
+    color: #64748b;
+    margin-top: 8px;
+}
+
+.edit-hint {
+    font-size: 1rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+    margin-left: 8px;
+}
+
+.school-title-section:hover .edit-hint {
+    opacity: 0.6;
+}
+
+.actions-bar {
+    background: #f1f5f9;
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.actions-bar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.school-stats-mini {
+    background: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    font-size: 0.9rem;
+}
+
+.main-content {
+    max-width: 1200px;
+    margin: 32px auto;
+    padding: 0 20px;
+}
+
+.students-list-section {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.students-list-section h2 {
+    margin-top: 0;
+    margin-bottom: 24px;
+    font-size: 1.25rem;
+}
+
+.empty-students {
+    text-align: center;
+    padding: 48px;
+    color: #94a3b8;
+    background: #f8fafc;
+    border: 2px dashed #e2e8f0;
+    border-radius: 8px;
+}
+
+.students-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.students-table th {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 2px solid #f1f5f9;
+    color: #64748b;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.students-table td {
+    padding: 16px 12px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.students-table tr:hover td {
+    background: #fafafa;
+}
+
+.table-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.icon-btn {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.icon-btn:hover {
+    background: #f1f5f9;
+}
+
+.icon-btn.danger:hover {
+    background: #fee2e2;
+    border-color: #fecaca;
+}
+
+code {
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #475569;
+}
+
+.clickable-cell:hover {
+    color: #3b82f6;
+    text-decoration: underline;
+}
+
+.clickable-cell:hover code {
+    background: #eff6ff;
+    color: #3b82f6;
+}
