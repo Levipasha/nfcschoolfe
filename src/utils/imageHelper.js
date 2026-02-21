@@ -1,3 +1,8 @@
+const CLOUDINARY_CLOUD = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || '';
+const CLOUDINARY_BASE = CLOUDINARY_CLOUD
+    ? `https://res.cloudinary.com/${CLOUDINARY_CLOUD}`
+    : '';
+
 /**
  * Helper to ensure image URLs are valid and using live placeholder services.
  * Especially fixes dead domains like via.placeholder.com
@@ -8,6 +13,16 @@ export const fixImageUrl = (url) => {
     // Replace dead via.placeholder.com with placehold.co
     if (url.includes('via.placeholder.com')) {
         return url.replace('via.placeholder.com', 'placehold.co');
+    }
+
+    // Cloudinary: already full URL
+    if (url.startsWith('https://res.cloudinary.com/')) {
+        return url;
+    }
+    // Cloudinary: path or public_id (e.g. "image/upload/v123/..." or "folder/public_id")
+    if (CLOUDINARY_BASE && !url.startsWith('/') && !url.startsWith('http')) {
+        const path = url.startsWith('image/') ? url : `image/upload/${url}`;
+        return `${CLOUDINARY_BASE}/${path}`;
     }
 
     // Handle local uploads

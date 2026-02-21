@@ -1689,6 +1689,7 @@
 }
 
 .artist-swiper-slide {
+    position: relative;
     width: 100%;
     height: 100%;
     display: flex;
@@ -1700,7 +1701,26 @@
     cursor: pointer;
 }
 
+.artist-slide-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+}
+
+.artist-swiper-slide-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(to top, #0f2027, #203a4300, #2c536400);
+    pointer-events: none;
+}
+
 .artist-swiper-slide-content {
+    position: relative;
+    z-index: 2;
     display: none;
     opacity: 0;
     padding-bottom: 0.625rem;

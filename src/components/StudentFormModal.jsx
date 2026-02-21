@@ -20,6 +20,7 @@ const StudentFormModal = ({ student, onClose, fixedSchool = null }) => {
     });
     const [schools, setSchools] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [photoUploading, setPhotoUploading] = useState(false);
     const [error, setError] = useState('');
     const [previewImage, setPreviewImage] = useState('');
 
@@ -67,21 +68,30 @@ const StudentFormModal = ({ student, onClose, fixedSchool = null }) => {
         }
     }, [student]);
 
-    const handleFileChange = (e) => {
+    const handleFileChange = async (e) => {
         const file = e.target.files[0];
-        if (file) {
-            if (file.size > 2 * 1024 * 1024) {
-                setError('Image size should be less than 2MB');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreviewImage(reader.result);
-                setFormData(prev => ({ ...prev, photo: reader.result }));
-            };
-            reader.readAsDataURL(file);
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) {
+            setError('Image should be less than 5MB');
+            return;
         }
+        setError('');
+        setPhotoUploading(true);
+        try {
+            const res = await adminAPI.uploadPhoto(file);
+            const url = res.data?.url;
+            if (url) {
+                setPreviewImage(url);
+                setFormData(prev => ({ ...prev, photo: url }));
+            } else {
+                setError('Upload failed');
+            }
+        } catch (err) {
+            setError(err.response?.data?.message || 'Photo upload failed');
+        } finally {
+            setPhotoUploading(false);
+        }
+        e.target.value = '';
     };
 
     const removePhoto = () => {
@@ -159,8 +169,12 @@ const StudentFormModal = ({ student, onClose, fixedSchool = null }) => {
                                 onChange={handleFileChange}
                                 className="hidden-file-input"
                             />
-                            <div className="photo-upload-zone" onClick={() => fileInputRef.current.click()}>
-                                {previewImage ? (
+                            <div className="photo-upload-zone" onClick={() => !photoUploading && fileInputRef.current?.click()}>
+                                {photoUploading ? (
+                                    <div className="photo-upload-placeholder" style={{ opacity: 0.9 }}>
+                                        <span>Uploading…</span>
+                                    </div>
+                                ) : previewImage ? (
                                     <div className="photo-preview-container">
                                         <img src={previewImage} alt="Preview" className="photo-preview-box" />
                                         <div className="photo-overlay">

@@ -8,6 +8,11 @@ import 'swiper/css/pagination';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { artistAPI } from '../services/api';
 import { fixImageUrl } from '../utils/imageHelper';
+
+const isVideoUrl = (url) => {
+    if (!url || typeof url !== 'string') return false;
+    return /\.(mp4|webm|ogg|mov|m4v)(\?|$)/i.test(url) || /\/video\/upload\//i.test(url) || url.includes('/video/');
+};
 import './ArtistProfile.css';
 import { signInWithGoogle, signInWithEmail, signUpWithEmail, onAuthStateChanged, auth, getGoogleRedirectResult, googleRedirectLogin } from '../firebase';
 
@@ -723,7 +728,30 @@ const ArtistProfile = ({ artistData }) => {
                                         {artist.gallery && artist.gallery.length > 0 ? (
                                             <Swiper
                                                 key={`events-swiper-${artist.gallery.length}`}
-                                                onSwiper={(swiper) => { eventsSwiperRef.current = swiper; }}
+                                                onSwiper={(swiper) => {
+                                                    eventsSwiperRef.current = swiper;
+                                                    const playActiveVideoOnly = () => {
+                                                        const activeEl = swiper.slides?.[swiper.activeIndex];
+                                                        swiper.slides?.forEach((el) => {
+                                                            const video = el?.querySelector('.artist-slide-video');
+                                                            if (video) {
+                                                                if (el === activeEl) video.play().catch(() => {});
+                                                                else video.pause();
+                                                            }
+                                                        });
+                                                    };
+                                                    setTimeout(playActiveVideoOnly, 300);
+                                                }}
+                                                onSlideChangeTransitionEnd={(swiper) => {
+                                                    const activeEl = swiper.slides?.[swiper.activeIndex];
+                                                    swiper.slides?.forEach((el) => {
+                                                        const video = el?.querySelector('.artist-slide-video');
+                                                        if (video) {
+                                                            if (el === activeEl) video.play().catch(() => {});
+                                                            else video.pause();
+                                                        }
+                                                    });
+                                                }}
                                                 effect="coverflow"
                                                 grabCursor
                                                 centeredSlides
@@ -742,20 +770,36 @@ const ArtistProfile = ({ artistData }) => {
                                                 className="artist-swiper"
                                             >
                                                 {artist.gallery.map((item, index) => {
-                                                    const imgUrl = typeof item === 'string' ? item : item.url;
-                                                    const imgName = typeof item === 'string' ? 'Untitled' : (item.name || 'Untitled');
+                                                    const mediaUrl = typeof item === 'string' ? item : item.url;
+                                                    const mediaName = typeof item === 'string' ? 'Untitled' : (item.name || 'Untitled');
+                                                    const isVideo = isVideoUrl(mediaUrl);
+                                                    const fixedUrl = fixImageUrl(mediaUrl);
                                                     return (
                                                         <SwiperSlide key={index}>
                                                             <div
                                                                 className="artist-swiper-slide"
-                                                                style={{
-                                                                    background: `linear-gradient(to top, #0f2027, #203a4300, #2c536400), url("${fixImageUrl(imgUrl)}") no-repeat 50% 50% / cover`
-                                                                }}
-                                                                onClick={(e) => { e.stopPropagation(); setSelectedImage(imgUrl); setShowPhotoModal(true); }}
+                                                                style={!isVideo ? {
+                                                                    background: `linear-gradient(to top, #0f2027, #203a4300, #2c536400), url("${fixedUrl}") no-repeat 50% 50% / cover`
+                                                                } : undefined}
+                                                                onClick={(e) => { e.stopPropagation(); setSelectedImage(mediaUrl); setShowPhotoModal(true); }}
                                                             >
+                                                                {isVideo ? (
+                                                                    <>
+                                                                        <video
+                                                                            className="artist-slide-video"
+                                                                            src={fixedUrl}
+                                                                            muted
+                                                                            loop
+                                                                            playsInline
+                                                                            autoPlay={false}
+                                                                            style={{ pointerEvents: 'none' }}
+                                                                        />
+                                                                        <div className="artist-swiper-slide-overlay" aria-hidden="true" />
+                                                                    </>
+                                                                ) : null}
                                                                 <div className="artist-swiper-slide-content">
-                                                                    <h2>{imgName}</h2>
-                                                                    <button type="button" className="artist-swiper-explore" onClick={(e) => { e.stopPropagation(); setSelectedImage(imgUrl); setShowPhotoModal(true); }}>
+                                                                    <h2>{mediaName}</h2>
+                                                                    <button type="button" className="artist-swiper-explore" onClick={(e) => { e.stopPropagation(); setSelectedImage(mediaUrl); setShowPhotoModal(true); }}>
                                                                         View
                                                                     </button>
                                                                 </div>
@@ -892,7 +936,11 @@ const ArtistProfile = ({ artistData }) => {
                 }}>
                     <div className="artist-preview-card" onClick={e => e.stopPropagation()}>
                         <div className="artist-preview-card-image-wrap">
-                            <img src={fixImageUrl(selectedImage || artist.photo)} alt={artist.name} className="artist-preview-card-img" />
+                            {isVideoUrl(selectedImage) ? (
+                                <video src={fixImageUrl(selectedImage)} className="artist-preview-card-img" autoPlay loop muted playsInline controls />
+                            ) : (
+                                <img src={fixImageUrl(selectedImage || artist.photo)} alt={artist.name} className="artist-preview-card-img" />
+                            )}
                             <div className="artist-preview-card-overlay">
                                 <h2 className="artist-preview-card-name">
                                     {artist.name}

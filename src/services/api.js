@@ -75,6 +75,14 @@ export const adminAPI = {
         });
     },
 
+    uploadPhoto: (file) => {
+        const formData = new FormData();
+        formData.append('photo', file);
+        return api.post('/api/upload/photo', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    },
+
     downloadTemplate: (format = 'csv') => {
         return api.get(`/api/upload/template?format=${format}`, {
             responseType: 'blob'
