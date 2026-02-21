@@ -1,24 +1,56 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { adminAPI, schoolAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import SchoolFormModal from '../components/SchoolFormModal';
+import PanelSwitcher from '../components/PanelSwitcher';
 import './AdminDashboard.css';
+
+const BADGE_KEYS = [
+    { id: 'rising', label: 'Rising Star', target: 1 },
+    { id: 'curator', label: 'Curator', target: 5 },
+    { id: 'popular', label: 'Popular', target: 10 },
+    { id: 'portfolio', label: 'Portfolio Pro', target: 10 },
+    { id: 'connector', label: 'Connector', target: 5 },
+    { id: 'legend', label: 'Legend', target: 50 }
+];
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
     const [stats, setStats] = useState(null);
     const [students, setStudents] = useState([]);
     const [schools, setSchools] = useState([]);
+    const [artists, setArtists] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [artistSearch, setArtistSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [activeTab, setActiveTab] = useState('schools');
     const [showSchoolModal, setShowSchoolModal] = useState(false);
     const [editingSchool, setEditingSchool] = useState(null);
+    const [showBadgeModal, setShowBadgeModal] = useState(false);
+    const [editingArtist, setEditingArtist] = useState(null);
+    const [badgeForm, setBadgeForm] = useState({});
+    const [savingBadges, setSavingBadges] = useState(false);
 
     useEffect(() => {
         fetchDashboardData();
     }, [statusFilter, searchTerm]);
+
+    useEffect(() => {
+        if (activeTab === 'artists') fetchArtists();
+    }, [activeTab, artistSearch]);
+
+    const fetchArtists = async () => {
+        try {
+            const res = await adminAPI.getArtists({ search: artistSearch });
+            setArtists(Array.isArray(res.data?.data) ? res.data.data : []);
+        } catch (e) {
+            if (e.response?.status === 401) navigate('/admin/login');
+            else setArtists([]);
+        }
+    };
 
     const fetchDashboardData = async () => {
         try {
@@ -136,6 +168,43 @@ const AdminDashboard = () => {
         window.open(url, '_blank');
     };
 
+    const openBadgeModal = (artist) => {
+        if (!artist || !artist._id) return;
+        const over = artist.badgeOverrides && typeof artist.badgeOverrides === 'object' ? artist.badgeOverrides : {};
+        const initial = {};
+        BADGE_KEYS.forEach(({ id }) => {
+            const v = over[id];
+            initial[id] = v !== undefined && v !== null && v !== '' ? String(v) : '';
+        });
+        setEditingArtist(artist);
+        setBadgeForm(initial);
+        setShowBadgeModal(true);
+    };
+
+    const handleSaveBadges = async () => {
+        if (!editingArtist) return;
+        setSavingBadges(true);
+        try {
+            const badgeOverrides = {};
+            BADGE_KEYS.forEach(({ id }) => {
+                const v = badgeForm[id];
+                if (v !== '' && v !== undefined && v !== null) {
+                    const n = Number(v);
+                    if (!Number.isNaN(n) && n >= 0) badgeOverrides[id] = n;
+                }
+            });
+            await adminAPI.updateArtist(editingArtist._id, { badgeOverrides });
+            alert('Badges updated successfully.');
+            setShowBadgeModal(false);
+            setEditingArtist(null);
+            if (activeTab === 'artists') fetchArtists();
+        } catch (e) {
+            alert(e.response?.data?.message || 'Failed to update badges');
+        } finally {
+            setSavingBadges(false);
+        }
+    };
+
     if (loading && !schools.length) {
         return <LoadingSpinner message="Loading dashboard..." />;
     }
@@ -147,12 +216,10 @@ const AdminDashboard = () => {
                 <div className="container">
                     <div className="header-content">
                         <div className="header-left">
-                            <h1 className="dashboard-title gradient-text">Admin Dashboard</h1>
+                            <h1 className="dashboard-title">Admin Dashboard</h1>
                             <p className="dashboard-subtitle">NFC Student Management System</p>
                         </div>
-                        <button onClick={handleLogout} className="btn btn-secondary">
-                            Logout
-                        </button>
+                        <PanelSwitcher currentPanel="school" />
                     </div>
                 </div>
             </header>
@@ -163,118 +230,175 @@ const AdminDashboard = () => {
                     <div className="container">
                         <div className="stats-grid">
                             <div className="stat-card stat-primary">
-                                <div className="stat-icon">👥</div>
-                                <div className="stat-content">
-                                    <div className="stat-value">{stats?.totalStudents || 0}</div>
-                                    <div className="stat-label">Total Students</div>
+                                <div className="stat-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                                 </div>
-                            </div>
-
-                            <div className="stat-card stat-success">
-                                <div className="stat-icon">✅</div>
-                                <div className="stat-content">
-                                    <div className="stat-value">{stats?.activeStudents || 0}</div>
-                                    <div className="stat-label">Active Students</div>
+                                <div className="stat-value">
+                                    <span>{stats?.totalStudents ?? '0'}</span>
                                 </div>
-                            </div>
-
-                            <div className="stat-card stat-warning">
-                                <div className="stat-icon">⏸️</div>
-                                <div className="stat-content">
-                                    <div className="stat-value">{stats?.inactiveStudents || 0}</div>
-                                    <div className="stat-label">Inactive Students</div>
-                                </div>
+                                <div className="stat-label">Total Students</div>
                             </div>
 
                             <div className="stat-card stat-info">
-                                <div className="stat-icon">📊</div>
-                                <div className="stat-content">
-                                    <div className="stat-value">{stats?.totalScans || 0}</div>
-                                    <div className="stat-label">Total Scans</div>
+                                <div className="stat-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18"></path><path d="M3 7v14"></path><path d="M13 3v18"></path><path d="M17 7v14"></path><path d="M21 7v14"></path><path d="M13 7h8"></path><path d="M13 11h8"></path><path d="M13 15h8"></path><path d="M7 11H3"></path><path d="M7 15H3"></path><path d="M7 19H3"></path></svg>
                                 </div>
+                                <div className="stat-value">
+                                    <span>{stats?.totalSchools ?? '0'}</span>
+                                </div>
+                                <div className="stat-label">Total Schools</div>
                             </div>
                         </div>
                     </div>
                 </section>
             )}
 
-            {/* Schools Management */}
-            <section className="students-section">
+            {/* Tabs: Schools | Artists */}
+            <section className="dashboard-tabs-section">
                 <div className="container">
-                    <div className="section-header">
-                        <h2 className="section-title">Schools Management</h2>
-                        <div className="section-actions">
-                            <button
-                                onClick={() => {
-                                    setEditingSchool(null);
-                                    setShowSchoolModal(true);
-                                }}
-                                className="btn btn-primary"
-                                title="Create a new school"
-                            >
-                                🏫 Add School
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Filters */}
-                    <div className="filters-bar">
-                        <div className="search-box">
-                            <span className="search-icon">🔍</span>
-                            <input
-                                type="text"
-                                placeholder="Search schools..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="search-input"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Schools Grid */}
-                    <div className="schools-grid-dashboard">
-                        {Array.isArray(schools) && schools.filter(s => s.name?.toLowerCase() !== 'default school').map((school) => (
-                            <div
-                                key={school._id}
-                                className={`school-card-dashboard ${!school.isActive ? 'inactive' : ''}`}
-                                onClick={() => handleViewStudents(school)}
-                                style={{ cursor: 'pointer' }}
-                            >
-                                <div className="school-card-header">
-                                    <div className="school-code-pill">{school.code}</div>
-                                    <span className={`status-pill ${school.isActive ? 'active' : 'inactive'}`}>
-                                        {school.isActive ? 'Active' : 'Inactive'}
-                                    </span>
-                                </div>
-                                <div className="school-card-body">
-                                    <h3 className="school-name-text">{school.name}</h3>
-                                    <div className="school-stats-row">
-                                        <div className="mini-stat">
-                                            <span className="mini-stat-value">{school.studentCount || 0}</span>
-                                            <span className="mini-stat-label">Students</span>
-                                        </div>
-                                        <div className="mini-stat">
-                                            <span className="mini-stat-value">{school.code}</span>
-                                            <span className="mini-stat-label">Code</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="card-click-hint">
-                                    Click to manage students →
-                                </div>
-                            </div>
-                        ))}
-
-                        {(!schools || schools.length === 0) && (
-                            <div className="empty-state">
-                                <div className="empty-icon">🏫</div>
-                                <h3>No schools found</h3>
-                                <p>Create a school to get started</p>
-                            </div>
-                        )}
+                    <div className="dashboard-tabs">
+                        <button
+                            type="button"
+                            className={`tab-btn ${activeTab === 'schools' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('schools')}
+                        >
+                            Schools
+                        </button>
+                        <button
+                            type="button"
+                            className={`tab-btn ${activeTab === 'artists' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('artists')}
+                        >
+                            Artists
+                        </button>
                     </div>
                 </div>
             </section>
+
+            {/* Schools Management */}
+            {activeTab === 'schools' && (
+                <section className="students-section">
+                    <div className="container">
+                        <div className="section-header action-bar">
+                            <div className="search-box">
+                                <span className="search-icon">🔍</span>
+                                <input
+                                    type="text"
+                                    placeholder="Search schools..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="search-input"
+                                />
+                            </div>
+                            <div className="section-actions">
+                                <button
+                                    onClick={() => {
+                                        setEditingSchool(null);
+                                        setShowSchoolModal(true);
+                                    }}
+                                    className="btn btn-primary"
+                                    title="Create a new school"
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><path d="M3 21h18"></path><path d="M3 7v14"></path><path d="M13 3v18"></path><path d="M17 7v14"></path><path d="M21 7v14"></path><path d="M13 7h8"></path><path d="M13 11h8"></path><path d="M13 15h8"></path><path d="M7 11H3"></path><path d="M7 15H3"></path><path d="M7 19H3"></path></svg>
+                                    Add School
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="schools-grid-dashboard">
+                            {Array.isArray(schools) && schools.filter(s => s.name?.toLowerCase() !== 'default school').map((school) => (
+                                <div
+                                    key={school._id}
+                                    className={`school-card-dashboard ${!school.isActive ? 'inactive' : ''}`}
+                                    onClick={() => handleViewStudents(school)}
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    <div className="school-card-body">
+                                        <h3 className="school-name-text">{school.name}</h3>
+                                        <div className="school-stats-row">
+                                            <div className="mini-stat">
+                                                <span className="mini-stat-value">{school.studentCount || 0}</span>
+                                                <span className="mini-stat-label">Students</span>
+                                            </div>
+                                            <div className="mini-stat">
+                                                <span className="mini-stat-value">{school.code}</span>
+                                                <span className="mini-stat-label">Code</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="card-footer">
+                                        <span className="manage-link">Manage Students</span>
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                                    </div>
+                                </div>
+                            ))}
+
+                            {(!schools || schools.length === 0) && (
+                                <div className="empty-state">
+                                    <div className="empty-icon">🏫</div>
+                                    <h3>No schools found</h3>
+                                    <p>Create a school to get started</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            {/* Artists Management – update badges */}
+            {activeTab === 'artists' && (
+                <section className="students-section artists-section">
+                    <div className="container">
+                        <div className="section-header action-bar">
+                            <div className="search-box">
+                                <span className="search-icon">🔍</span>
+                                <input
+                                    type="text"
+                                    placeholder="Search artists by name, ID, code, email..."
+                                    value={artistSearch}
+                                    onChange={(e) => setArtistSearch(e.target.value)}
+                                    className="search-input"
+                                />
+                            </div>
+                        </div>
+                        <div className="schools-grid-dashboard artist-cards-grid">
+                            {Array.isArray(artists) && artists.map((artist) => (
+                                <div key={artist._id} className="school-card-dashboard artist-card-dashboard">
+                                    <div className="school-card-body">
+                                        <h3 className="school-name-text">{artist.name || 'Unnamed'}</h3>
+                                        <div className="school-stats-row">
+                                            <div className="mini-stat">
+                                                <span className="mini-stat-value">{artist.artistId || artist.code || '—'}</span>
+                                                <span className="mini-stat-label">ID</span>
+                                            </div>
+                                            <div className="mini-stat">
+                                                <span className="mini-stat-value">{artist.scanCount ?? 0}</span>
+                                                <span className="mini-stat-label">Scans</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="card-footer">
+                                        <button
+                                            type="button"
+                                            className="btn-edit-badges"
+                                            onClick={(e) => { e.stopPropagation(); openBadgeModal(artist); }}
+                                        >
+                                            Edit badges
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                            {(!artists || artists.length === 0) && activeTab === 'artists' && (
+                                <div className="empty-state">
+                                    <div className="empty-icon">🎨</div>
+                                    <h3>No artists found</h3>
+                                    <p>Artists will appear here when they are created.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </section>
+            )}
 
             <SchoolFormModal
                 show={showSchoolModal}
@@ -285,6 +409,45 @@ const AdminDashboard = () => {
                 onSubmit={handleCreateSchool}
                 school={editingSchool}
             />
+
+            {/* Edit artist badges modal – render in portal so it's not clipped */}
+            {showBadgeModal && editingArtist && createPortal(
+                <div
+                    className="badge-modal-overlay"
+                    onClick={() => !savingBadges && setShowBadgeModal(false)}
+                    onKeyDown={(e) => e.key === 'Escape' && !savingBadges && setShowBadgeModal(false)}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="badge-modal-title"
+                >
+                    <div className="badge-modal-content" onClick={e => e.stopPropagation()}>
+                        <h3 id="badge-modal-title" className="badge-modal-title">Edit badges — {editingArtist.name || editingArtist.artistId || 'Artist'}</h3>
+                        <p className="badge-modal-hint">Override the values shown on the artist profile card. Leave blank to use automatic values.</p>
+                        <div className="badge-form-grid">
+                            {BADGE_KEYS.map(({ id, label, target }) => (
+                                <div key={id} className="badge-form-row">
+                                    <label htmlFor={`badge-${id}`}>{label}</label>
+                                    <input
+                                        id={`badge-${id}`}
+                                        type="number"
+                                        min={0}
+                                        placeholder={`Target: ${target}`}
+                                        value={badgeForm[id] ?? ''}
+                                        onChange={(e) => setBadgeForm(prev => ({ ...prev, [id]: e.target.value }))}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                        <div className="badge-modal-actions">
+                            <button type="button" className="badge-modal-btn badge-modal-btn-cancel" onClick={() => setShowBadgeModal(false)} disabled={savingBadges}>Cancel</button>
+                            <button type="button" className="badge-modal-btn badge-modal-btn-save" onClick={handleSaveBadges} disabled={savingBadges}>
+                                {savingBadges ? 'Saving...' : 'Save badges'}
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
         </div>
     );
 };

@@ -130,46 +130,19 @@ const BulkUploadModal = ({ onClose, onSuccess, fixedSchool = null }) => {
 
     return (
         <div className="modal-overlay" onClick={() => onClose()}>
-            <div className="modal-content upload-modal" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2 className="modal-title">📤 Bulk Upload Students</h2>
-                    <button onClick={() => onClose()} className="modal-close">✕</button>
+            <div className="modal-content upload-modal-premium" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header-premium">
+                    <div className="title-section-centered">
+                        <h2 className="modal-title">Bulk Student Upload</h2>
+                    </div>
                 </div>
 
-                <div className="modal-body">
-                    {/* Instructions */}
-                    <div className="upload-instructions">
-                        <h3>📋 Instructions:</h3>
-                        <ol>
-                            <li>Download the template file (CSV or TXT format)</li>
-                            <li>Fill in student details following the template format</li>
-                            <li>Upload the completed file below</li>
-                        </ol>
-                    </div>
-
-                    {/* Template Download */}
-                    <div className="template-section">
-                        <h4>Download Template:</h4>
-                        <div className="template-buttons">
-                            <button
-                                onClick={() => handleDownloadTemplate('csv')}
-                                className="btn btn-secondary btn-sm"
-                            >
-                                📄 Download CSV Template
-                            </button>
-                            <button
-                                onClick={() => handleDownloadTemplate('txt')}
-                                className="btn btn-secondary btn-sm"
-                            >
-                                📝 Download TXT Template
-                            </button>
-                        </div>
-                    </div>
+                <div className="modal-body-premium">
 
                     {/* School Selection */}
                     {!fixedSchool && (
-                        <div className="school-selection-section">
-                            <h4>Select School: <span style={{ color: '#dc2626' }}>*</span></h4>
+                        <div className="school-select-section-premium">
+                            <span className="label-text">Select Destination School:</span>
                             <select
                                 value={selectedSchool}
                                 onChange={(e) => {
@@ -177,128 +150,114 @@ const BulkUploadModal = ({ onClose, onSuccess, fixedSchool = null }) => {
                                     setSelectedSchool(e.target.value);
                                     setSelectedSchoolCode(school?.code || '');
                                 }}
-                                className="input-field"
+                                className="premium-select"
                                 required
                                 disabled={uploading}
                             >
-                                <option value="">Choose School</option>
+                                <option value="">Choose a school...</option>
                                 {schools.map(school => (
                                     <option key={school._id} value={school._id}>
                                         {school.name} ({school.code})
                                     </option>
                                 ))}
                             </select>
-                            {selectedSchoolCode && (
-                                <small style={{ display: 'block', marginTop: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                                    📝 Uploaded students will get IDs like: <strong>{selectedSchoolCode}-01</strong>, <strong>{selectedSchoolCode}-02</strong>, etc.
-                                </small>
-                            )}
                         </div>
                     )}
 
-                    {/* File Upload Area */}
-                    <div className="upload-section">
-                        <h4>Upload File:</h4>
+                    {/* Template Download */}
+                    <div className="template-section">
+                        <div className="section-label-row">
+                            <span className="label-text">Select Template Format:</span>
+                        </div>
+                        <div className="template-grid">
+                            <button onClick={() => handleDownloadTemplate('csv')} className="template-btn">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                <span>CSV Format</span>
+                            </button>
+                            <button onClick={() => handleDownloadTemplate('txt')} className="template-btn">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                <span>TXT Format</span>
+                            </button>
+                        </div>
+                    </div>
 
+                    {/* File Upload Area */}
+                    <div className="upload-zone-wrapper">
                         <div
-                            className={`upload-dropzone ${dragActive ? 'active' : ''} ${file ? 'has-file' : ''}`}
+                            className={`premium-dropzone ${dragActive ? 'active' : ''} ${file ? 'has-file' : ''}`}
                             onDragEnter={handleDrag}
                             onDragLeave={handleDrag}
                             onDragOver={handleDrag}
                             onDrop={handleDrop}
                         >
                             {file ? (
-                                <div className="file-selected">
-                                    <div className="file-icon">📄</div>
-                                    <div className="file-info">
-                                        <div className="file-name">{file.name}</div>
-                                        <div className="file-size">{(file.size / 1024).toFixed(2)} KB</div>
+                                <div className="file-preview-premium">
+                                    <div className="file-icon-box">
+                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
                                     </div>
-                                    <button
-                                        onClick={() => setFile(null)}
-                                        className="btn-remove-file"
-                                    >
-                                        ✕
-                                    </button>
+                                    <div className="file-details">
+                                        <div className="name">{file.name}</div>
+                                        <div className="size">{(file.size / 1024).toFixed(2)} KB</div>
+                                    </div>
+                                    <button onClick={() => setFile(null)} className="remove-file-btn">✕</button>
                                 </div>
                             ) : (
-                                <>
-                                    <div className="upload-icon">📁</div>
-                                    <p className="upload-text">
-                                        Drag and drop file here, or click to browse
-                                    </p>
-                                    <p className="upload-hint">
-                                        Accepts CSV and TXT files (max 5MB)
-                                    </p>
+                                <div className="empty-zone">
+                                    <div className="zone-icon-box">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                                    </div>
+                                    <p className="primary-text">Drag & drop or <span>browse files</span></p>
+                                    <p className="secondary-text">Maximum size 5MB (CSV, TXT)</p>
                                     <input
                                         type="file"
                                         accept=".csv,.txt"
                                         onChange={handleFileChange}
-                                        className="file-input"
+                                        className="hidden-file-input"
                                         disabled={uploading}
                                     />
-                                </>
+                                </div>
                             )}
                         </div>
                     </div>
 
                     {/* Upload Result */}
                     {result && (
-                        <div className="upload-result">
-                            <h4>Upload Results:</h4>
-
-                            <div className="result-stats">
-                                <div className="result-stat success">
-                                    <div className="stat-icon">✅</div>
-                                    <div className="stat-info">
-                                        <div className="stat-value">{result.successful}</div>
-                                        <div className="stat-label">Successful</div>
-                                    </div>
+                        <div className="result-panel-premium">
+                            <div className="result-grid">
+                                <div className="stat-card-premium success">
+                                    <span className="val">{result.successful}</span>
+                                    <span className="lab">Imported</span>
                                 </div>
-
-                                <div className="result-stat warning">
-                                    <div className="stat-icon">⚠️</div>
-                                    <div className="stat-info">
-                                        <div className="stat-value">{result.duplicates}</div>
-                                        <div className="stat-label">Duplicates</div>
-                                    </div>
+                                <div className="stat-card-premium warning">
+                                    <span className="val">{result.duplicates}</span>
+                                    <span className="lab">Duplicates</span>
                                 </div>
-
-                                <div className="result-stat error">
-                                    <div className="stat-icon">❌</div>
-                                    <div className="stat-info">
-                                        <div className="stat-value">{result.failed}</div>
-                                        <div className="stat-label">Failed</div>
-                                    </div>
+                                <div className="stat-card-premium error">
+                                    <span className="val">{result.failed}</span>
+                                    <span className="lab">Failed</span>
                                 </div>
                             </div>
 
-                            {/* Show details if there are errors */}
                             {(result.failed > 0 || result.duplicates > 0) && (
-                                <div className="result-details">
+                                <div className="issue-log-premium">
                                     {result.details.duplicates.length > 0 && (
-                                        <div className="detail-section">
-                                            <h5>Duplicate Roll Numbers:</h5>
-                                            <ul>
-                                                {result.details.duplicates.slice(0, 5).map((dup, idx) => (
-                                                    <li key={idx}>
-                                                        {dup.name} ({dup.rollNumber})  {dup.reason}
-                                                    </li>
-                                                ))}
-                                            </ul>
+                                        <div className="log-section">
+                                            <h5>Duplicates Detected (First 5):</h5>
+                                            {result.details.duplicates.slice(0, 5).map((dup, idx) => (
+                                                <div key={idx} className="log-item">
+                                                    <strong>{dup.rollNumber}</strong>: {dup.name}
+                                                </div>
+                                            ))}
                                         </div>
                                     )}
-
                                     {result.details.failed.length > 0 && (
-                                        <div className="detail-section">
-                                            <h5>Failed Entries:</h5>
-                                            <ul>
-                                                {result.details.failed.slice(0, 5).map((fail, idx) => (
-                                                    <li key={idx}>
-                                                        {fail.name} ({fail.rollNumber}) - {fail.reason}
-                                                    </li>
-                                                ))}
-                                            </ul>
+                                        <div className="log-section">
+                                            <h5>Failed Entries (First 5):</h5>
+                                            {result.details.failed.slice(0, 5).map((fail, idx) => (
+                                                <div key={idx} className="log-item danger">
+                                                    <strong>{fail.rollNumber}</strong>: {fail.reason}
+                                                </div>
+                                            ))}
                                         </div>
                                     )}
                                 </div>
@@ -306,27 +265,21 @@ const BulkUploadModal = ({ onClose, onSuccess, fixedSchool = null }) => {
                         </div>
                     )}
 
-                    {/* Action Buttons */}
-                    <div className="modal-footer">
-                        <button
-                            onClick={() => onClose()}
-                            className="btn btn-secondary"
-                            disabled={uploading}
-                        >
-                            Close
+                    <div className="modal-actions-premium">
+                        <button onClick={() => onClose()} className="modal-btn-secondary" disabled={uploading}>
+                            Cancel
                         </button>
-                        <button
-                            onClick={handleUpload}
-                            className="btn btn-primary"
-                            disabled={!file || uploading}
-                        >
+                        <button onClick={handleUpload} className="modal-btn-primary" disabled={!file || uploading}>
                             {uploading ? (
-                                <>
-                                    <span className="loading-spinner"></span>
-                                    Uploading...
-                                </>
+                                <div className="loading-state">
+                                    <div className="spinner-mini"></div>
+                                    <span>Processing...</span>
+                                </div>
                             ) : (
-                                '📤 Upload Students'
+                                <>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16"></polyline><line x1="12" y1="12" x2="12" y2="21"></line><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path><polyline points="16 16 12 12 8 16"></polyline></svg>
+                                    <span>Start Import</span>
+                                </>
                             )}
                         </button>
                     </div>

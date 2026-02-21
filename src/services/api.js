@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL =
+    import.meta.env.VITE_API_URL ||
+    `${window.location.protocol}//${window.location.hostname}:5000`;
 
 const api = axios.create({
     baseURL: API_URL,
@@ -56,6 +58,10 @@ export const adminAPI = {
 
     getStats: () => api.get('/api/admin/stats'),
 
+    getArtists: (params) => api.get('/api/admin/artists', { params }),
+    getArtist: (id) => api.get(`/api/admin/artists/${id}`),
+    updateArtist: (id, data) => api.put(`/api/admin/artists/${id}`, data),
+
     uploadStudents: (file, schoolId, schoolCode) => {
         const formData = new FormData();
         formData.append('file', file);
@@ -90,6 +96,26 @@ export const schoolAPI = {
     toggleSchoolStatus: (id) => api.put(`/api/school/${id}/toggle-status`),
 
     getSchoolStudents: (id) => api.get(`/api/school/${id}/students`)
+};
+
+export const artistAPI = {
+    getArtists: () => api.get('/api/artist'),
+    getArtist: (id) => api.get(`/api/artist/${id}`),
+    getArtistByToken: (token) => api.get(`/api/artist/token/${token}`),
+    createArtist: (data) => api.post('/api/artist', data),
+    updateArtist: (id, data) => api.put(`/api/artist/${id}`, data),
+    deleteArtist: (id) => api.delete(`/api/artist/${id}`),
+    getStats: () => api.get('/api/artist/stats/overview'),
+    quickCreateArtist: () => api.post('/api/artist/quick-create'),
+    setupProfile: (token, data) => api.put(`/api/artist/setup/${token}`, data),
+    getArtistById: (id) => api.get(`/api/artist/profile?id=${id}`),
+    uploadPhoto: (file) => {
+        const formData = new FormData();
+        formData.append('photo', file);
+        return api.post('/api/artist/upload-photo', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    }
 };
 
 export default api;

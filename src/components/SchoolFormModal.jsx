@@ -61,102 +61,84 @@ const SchoolFormModal = ({ show, onClose, onSubmit, school = null }) => {
 
     return (
         <div className="modal-overlay" onClick={handleClose}>
-            <div className="modal-content school-modal" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2>{school ? 'Edit School' : 'Create New School'}</h2>
-                    <button onClick={handleClose} className="modal-close">&times;</button>
+            <div className="modal-content-premium school-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header-premium">
+                    <h2 className="modal-title">{school ? 'School Settings' : 'Add New Institution'}</h2>
+                    <button type="button" onClick={handleClose} className="free-close-btn" title="Close">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
                 </div>
 
-                <form onSubmit={handleSubmit}>
-                    <div className="modal-body">
-                        <div className="input-group">
-                            <label className="input-label" htmlFor="name">
-                                🏫 School Name <span className="required">*</span>
-                            </label>
+                <form onSubmit={handleSubmit} className="modal-body-premium">
+                    <div className="premium-input-group">
+                        <span className="premium-label">School Name</span>
+                        <input
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            className={`premium-input ${errors.name ? 'error' : ''}`}
+                            placeholder="e.g. SV Model High School"
+                        />
+                        {errors.name && <span className="alert-premium-mini">{errors.name}</span>}
+                    </div>
+
+                    <div className="premium-input-group">
+                        <span className="premium-label">Address / Location</span>
+                        <textarea
+                            name="address"
+                            value={formData.address}
+                            onChange={handleChange}
+                            rows="2"
+                            className="premium-input"
+                            placeholder="Full physical address"
+                        ></textarea>
+                    </div>
+
+                    <div className="premium-form-grid">
+                        <div className="premium-input-group">
+                            <span className="premium-label">Contact Phone</span>
                             <input
-                                type="text"
-                                id="name"
-                                name="name"
-                                value={formData.name}
+                                type="tel"
+                                name="phone"
+                                value={formData.phone}
                                 onChange={handleChange}
-                                className={`input-field ${errors.name ? 'error' : ''}`}
-                                placeholder="e.g., SV Model High School"
+                                className="premium-input"
+                                placeholder="+91 XXXXXXXXXX"
                             />
-                            {errors.name && <span className="error-text">{errors.name}</span>}
-                            <small className="form-help">
-                                ✨ School code will be auto-generated (e.g., "SL1")
-                            </small>
                         </div>
 
-                        <div className="input-group">
-                            <label className="input-label" htmlFor="address">
-                                📍 Address
-                            </label>
-                            <textarea
-                                id="address"
-                                name="address"
-                                value={formData.address}
-                                onChange={handleChange}
-                                rows="2"
-                                className="input-field"
-                                placeholder="Full address of the school"
-                            ></textarea>
-                        </div>
-
-                        <div className="form-row">
-                            <div className="input-group">
-                                <label className="input-label" htmlFor="phone">
-                                    📞 Phone
-                                </label>
-                                <input
-                                    type="tel"
-                                    id="phone"
-                                    name="phone"
-                                    value={formData.phone}
-                                    onChange={handleChange}
-                                    className="input-field"
-                                    placeholder="+91 XXXXXXXXXX"
-                                />
-                            </div>
-
-                            <div className="input-group">
-                                <label className="input-label" htmlFor="email">
-                                    📧 Email
-                                </label>
-                                <input
-                                    type="email"
-                                    id="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    className="input-field"
-                                    placeholder="school@example.com"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="input-group">
-                            <label className="input-label" htmlFor="principalName">
-                                👤 Principal Name
-                            </label>
+                        <div className="premium-input-group">
+                            <span className="premium-label">Email Address</span>
                             <input
-                                type="text"
-                                id="principalName"
-                                name="principalName"
-                                value={formData.principalName}
+                                type="email"
+                                name="email"
+                                value={formData.email}
                                 onChange={handleChange}
-                                className="input-field"
-                                placeholder="Principal's full name"
+                                className="premium-input"
+                                placeholder="school@example.com"
                             />
                         </div>
                     </div>
 
-                    <div className="modal-footer">
-                        <button type="button" onClick={handleClose} className="btn btn-secondary">
+                    <div className="premium-input-group">
+                        <span className="premium-label">Principal / Headmaster</span>
+                        <input
+                            type="text"
+                            name="principalName"
+                            value={formData.principalName}
+                            onChange={handleChange}
+                            className="premium-input"
+                            placeholder="Principal's full name"
+                        />
+                    </div>
+
+                    <div className="modal-actions-premium">
+                        <button type="button" onClick={handleClose} className="modal-btn-secondary">
                             Cancel
                         </button>
-                        <button type="submit" className="btn btn-primary">
-                            {school ? 'Update School' : '✨ Create School'}
+                        <button type="submit" className="modal-btn-primary">
+                            <span>{school ? 'Save Changes' : 'Register School'}</span>
                         </button>
                     </div>
                 </form>
