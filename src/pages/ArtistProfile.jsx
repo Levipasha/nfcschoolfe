@@ -703,12 +703,6 @@ const ArtistProfile = ({ artistData }) => {
                                 <div className="artist-name-art-center">
                                     <div className="name-edit-row">
                                         <h1 className="display-name">{artist.name}</h1>
-                                        {user && user.uid === artist.ownerUid && !isEditing && (
-                                            <button className="edit-profile-action" onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}>
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                                Edit Portfolio
-                                            </button>
-                                        )}
                                     </div>
                                     <p className="specialization-badge">{artist.specialization || "Creative Professional"}</p>
                                 </div>
@@ -812,7 +806,7 @@ const ArtistProfile = ({ artistData }) => {
                                             <div className="mini-slideshow-placeholder">
                                                 <div className="placeholder-icon">🖼️</div>
                                                 <p className="placeholder-title">No events yet</p>
-                                                <p className="placeholder-desc">Images added in Edit Portfolio or by admin will appear here.</p>
+                                                <p className="placeholder-desc">Images added from the landing page or by admin will appear here.</p>
                                             </div>
                                         )}
                                     </div>
@@ -919,7 +913,7 @@ const ArtistProfile = ({ artistData }) => {
                             </div>
                             <div className="profile-footer profile-footer-artist profile-footer-back">
                                 <div className="premium-brand-badge">
-                                    <span className="badge-text">SECURE NFC STUDENT SYSTEM</span><br />
+                                    <span className="badge-text badge-encrypted">End-to-end encrypted</span><br />
                                     <span className="badge-text">Powered by <a href="https://nanoprofiles.com" target="_blank" rel="noopener noreferrer" className="badge-link">NanoProfiles</a></span>
                                 </div>
                             </div>

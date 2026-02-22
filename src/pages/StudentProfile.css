@@ -787,10 +787,33 @@
     color: #6366f1;
 }
 
+/* Student card – centered on mobile */
+@media (max-width: 768px) {
+    .student-profile-wrapper {
+        align-items: center;
+        justify-content: center;
+        padding: 1rem 0.75rem 2rem;
+    }
+    .container-sm {
+        width: 100%;
+        max-width: min(450px, 92vw);
+        margin: 0 auto;
+        padding: 0 0.5rem;
+    }
+    .flip-card-container {
+        margin: 0 auto;
+        max-width: 100%;
+    }
+    .profile-card {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
 /* Student card – match artist on small screens */
 @media (max-width: 480px) {
     .student-profile-wrapper {
-        padding: 1rem 0.75rem 4rem;
+        padding: 1rem 0.5rem 2rem;
     }
     .flip-card-container {
         max-width: 100%;
@@ -1248,25 +1271,29 @@ padding: 24px;
     }
     
     .student-profile-wrapper {
-        width: 100vw;
+        width: 100%;
+        max-width: 100vw;
         overflow-x: hidden;
+        align-items: center;
+        justify-content: center;
     }
 
     .container-sm {
-        max-width: 100vw;
-        width: 100vw;
-        padding: 0;
-        margin: 0;
+        width: 100%;
+        max-width: min(450px, 92vw);
+        padding: 0 0.5rem;
+        margin: 0 auto;
     }
 
     .profile-card {
-        width: 100vw;
+        width: 100%;
+        max-width: 100%;
         border-radius: 15px;
         min-height: 500px;
     }
 
     .profile-header {
-        width: 100vw;
+        width: 100%;
         padding: 40px 15px 120px;
         margin: 0;
     }

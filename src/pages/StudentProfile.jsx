@@ -346,7 +346,6 @@ const StudentProfile = ({ studentData }) => {
                                 {/* Footer */}
                                 <div className="profile-footer">
                                     <div className="premium-brand-badge">
-                                        <span className="badge-text">SECURE NFC STUDENT SYSTEM</span><br />
                                         <span className="badge-text">Powered by <a href="https://nanoprofiles.com" target="_blank" rel="noopener noreferrer" className="badge-link">NanoProfiles</a></span>
                                     </div>
                                 </div>

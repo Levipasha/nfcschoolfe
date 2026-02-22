@@ -78,7 +78,7 @@ export const adminAPI = {
     uploadPhoto: (file) => {
         const formData = new FormData();
         formData.append('photo', file);
-        return api.post('/api/upload/photo', formData, {
+        return api.post('/api/artist/upload-photo', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
     },

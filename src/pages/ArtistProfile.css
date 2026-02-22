@@ -1293,6 +1293,12 @@
     color: #64748b;
 }
 
+.profile-footer-artist .badge-text.badge-encrypted {
+    color: #94a3b8;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+}
+
 .profile-footer-artist .badge-link {
     color: inherit;
     text-decoration: none;
