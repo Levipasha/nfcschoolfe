@@ -8,6 +8,7 @@ const StudentFormModal = ({ student, onClose, fixedSchool = null }) => {
         name: '',
         rollNumber: '',
         class: '',
+        age: '',
         bloodGroup: '',
         motherName: '',
         fatherName: '',
@@ -48,23 +49,69 @@ const StudentFormModal = ({ student, onClose, fixedSchool = null }) => {
         loadSchools();
 
         if (student) {
-            setFormData({
-                name: student.name || '',
-                rollNumber: student.rollNumber || '',
-                class: student.class || '',
-                bloodGroup: student.bloodGroup || '',
-                motherName: student.motherName || '',
-                fatherName: student.fatherName || '',
-                motherPhone: student.motherPhone || '',
-                fatherPhone: student.fatherPhone || '',
-                address: student.address || '',
-                photo: student.photo || '',
-                school: student.school?._id || student.school || '',
-                schoolCode: student.schoolCode || ''
-            });
-            if (student.photo) {
-                setPreviewImage(student.photo);
-            }
+            // Fetch full student from API so we have all fields (e.g. age) and latest data
+            const loadStudent = async () => {
+                try {
+                    const res = await adminAPI.getStudent(student.studentId);
+                    const s = res.data?.data;
+                    if (s) {
+                        setFormData({
+                            name: s.name || '',
+                            rollNumber: s.rollNumber || '',
+                            class: s.class || '',
+                            age: s.age !== undefined && s.age !== null ? String(s.age) : '',
+                            bloodGroup: s.bloodGroup || '',
+                            motherName: s.motherName || '',
+                            fatherName: s.fatherName || '',
+                            motherPhone: s.motherPhone || '',
+                            fatherPhone: s.fatherPhone || '',
+                            address: s.address || '',
+                            photo: s.photo || '',
+                            school: s.school?._id || s.school || '',
+                            schoolCode: s.schoolCode || ''
+                        });
+                        if (s.photo) setPreviewImage(s.photo);
+                    } else {
+                        // Fallback to prop if API fails
+                        setFormData({
+                            name: student.name || '',
+                            rollNumber: student.rollNumber || '',
+                            class: student.class || '',
+                            age: student.age !== undefined && student.age !== null ? String(student.age) : '',
+                            bloodGroup: student.bloodGroup || '',
+                            motherName: student.motherName || '',
+                            fatherName: student.fatherName || '',
+                            motherPhone: student.motherPhone || '',
+                            fatherPhone: student.fatherPhone || '',
+                            address: student.address || '',
+                            photo: student.photo || '',
+                            school: student.school?._id || student.school || '',
+                            schoolCode: student.schoolCode || ''
+                        });
+                        if (student.photo) setPreviewImage(student.photo);
+                    }
+                } catch (err) {
+                    console.error('Error fetching student for edit:', err);
+                    // Fallback to prop
+                    setFormData({
+                        name: student.name || '',
+                        rollNumber: student.rollNumber || '',
+                        class: student.class || '',
+                        age: student.age !== undefined && student.age !== null ? String(student.age) : '',
+                        bloodGroup: student.bloodGroup || '',
+                        motherName: student.motherName || '',
+                        fatherName: student.fatherName || '',
+                        motherPhone: student.motherPhone || '',
+                        fatherPhone: student.fatherPhone || '',
+                        address: student.address || '',
+                        photo: student.photo || '',
+                        school: student.school?._id || student.school || '',
+                        schoolCode: student.schoolCode || ''
+                    });
+                    if (student.photo) setPreviewImage(student.photo);
+                }
+            };
+            loadStudent();
         }
     }, [student]);
 
@@ -125,10 +172,15 @@ const StudentFormModal = ({ student, onClose, fixedSchool = null }) => {
             setLoading(true);
             setError('');
 
+            const payload = {
+                ...formData,
+                age: formData.age === '' || formData.age == null ? undefined : Number(formData.age)
+            };
+
             if (student) {
-                await adminAPI.updateStudent(student.studentId, formData);
+                await adminAPI.updateStudent(student.studentId, payload);
             } else {
-                await adminAPI.addStudent(formData);
+                await adminAPI.addStudent(payload);
             }
 
             onClose(true); // Refresh dashboard
@@ -274,6 +326,20 @@ const StudentFormModal = ({ student, onClose, fixedSchool = null }) => {
                                 onChange={handleChange}
                                 className="premium-input"
                                 placeholder="e.g. O+ve"
+                            />
+                        </div>
+
+                        <div className="premium-input-group">
+                            <span className="premium-label">Age</span>
+                            <input
+                                type="number"
+                                name="age"
+                                value={formData.age}
+                                onChange={handleChange}
+                                className="premium-input"
+                                placeholder="e.g. 15"
+                                min={1}
+                                max={120}
                             />
                         </div>
 
