@@ -28,7 +28,8 @@ const ArtistDashboard = () => {
         twitter: '',
         specialization: '',
         backgroundPhoto: '',
-        gallery: []
+        gallery: [],
+        profileTheme: 'mono'
     });
     const [galleryUploads, setGalleryUploads] = useState([]); // { file: File, name: string }[]
     const [newGalleryName, setNewGalleryName] = useState('');
@@ -191,7 +192,8 @@ const ArtistDashboard = () => {
             twitter: artist.twitter || '',
             specialization: artist.specialization || '',
             backgroundPhoto: artist.backgroundPhoto || '',
-            gallery
+            gallery,
+            profileTheme: artist.profileTheme || 'mono'
         });
         setPhotoFile(null);
         setBgPhotoFile(null);
@@ -230,7 +232,8 @@ const ArtistDashboard = () => {
             twitter: '',
             specialization: '',
             backgroundPhoto: '',
-            gallery: []
+            gallery: [],
+            profileTheme: 'mono'
         });
         setPhotoFile(null);
         setBgPhotoFile(null);
@@ -409,6 +412,27 @@ const ArtistDashboard = () => {
                                     rows="4"
                                     placeholder="Tell us about the artist..."
                                 />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Profile Theme</label>
+                                <div className="theme-choices-row">
+                                    {[
+                                        { id: 'mono', label: 'Mono Dark' },
+                                        { id: 'classic', label: 'Classic Light' },
+                                        { id: 'neon', label: 'Neon Glow' },
+                                        { id: 'art', label: 'Art Red/Black' }
+                                    ].map((theme) => (
+                                        <button
+                                            key={theme.id}
+                                            type="button"
+                                            className={`theme-pill ${formData.profileTheme === theme.id ? 'selected' : ''}`}
+                                            onClick={() => setFormData(prev => ({ ...prev, profileTheme: theme.id }))}
+                                        >
+                                            <span className="theme-pill-label">{theme.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
                             <div className="form-group">

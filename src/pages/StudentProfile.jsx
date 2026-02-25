@@ -276,6 +276,11 @@ const StudentProfile = ({ studentData }) => {
                                 {/* Student Name, Institute & Roll – clean UI */}
                                 <div className="profile-body">
                                     <h1 className="student-name">{student.name}</h1>
+                                    {(student.nickname || student.nickName || student.alias) && (
+                                        <div className="student-nickname">
+                                            {student.nickname || student.nickName || student.alias}
+                                        </div>
+                                    )}
                                     {instituteName && <div className="student-institute">{toTitleCase(instituteName)}</div>}
                                     <div className="roll-number-card">
                                         <span className="roll-number-icon">📋</span>

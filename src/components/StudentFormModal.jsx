@@ -6,6 +6,7 @@ const StudentFormModal = ({ student, onClose, fixedSchool = null }) => {
     const fileInputRef = useRef(null);
     const [formData, setFormData] = useState({
         name: '',
+        nickname: '',
         rollNumber: '',
         class: '',
         age: '',
@@ -57,6 +58,7 @@ const StudentFormModal = ({ student, onClose, fixedSchool = null }) => {
                     if (s) {
                         setFormData({
                             name: s.name || '',
+                            nickname: s.nickname || '',
                             rollNumber: s.rollNumber || '',
                             class: s.class || '',
                             age: s.age !== undefined && s.age !== null ? String(s.age) : '',
@@ -75,6 +77,7 @@ const StudentFormModal = ({ student, onClose, fixedSchool = null }) => {
                         // Fallback to prop if API fails
                         setFormData({
                             name: student.name || '',
+                            nickname: student.nickname || '',
                             rollNumber: student.rollNumber || '',
                             class: student.class || '',
                             age: student.age !== undefined && student.age !== null ? String(student.age) : '',
@@ -95,6 +98,7 @@ const StudentFormModal = ({ student, onClose, fixedSchool = null }) => {
                     // Fallback to prop
                     setFormData({
                         name: student.name || '',
+                        nickname: student.nickname || '',
                         rollNumber: student.rollNumber || '',
                         class: student.class || '',
                         age: student.age !== undefined && student.age !== null ? String(student.age) : '',
@@ -301,6 +305,18 @@ const StudentFormModal = ({ student, onClose, fixedSchool = null }) => {
                                 className="premium-input"
                                 placeholder="Student's complete name"
                                 required
+                            />
+                        </div>
+
+                        <div className="premium-input-group full-width">
+                            <span className="premium-label">Nick Name (optional)</span>
+                            <input
+                                type="text"
+                                name="nickname"
+                                value={formData.nickname}
+                                onChange={handleChange}
+                                className="premium-input"
+                                placeholder="Short name to show below full name"
                             />
                         </div>
 

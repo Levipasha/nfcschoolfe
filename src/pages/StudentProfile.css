@@ -681,6 +681,31 @@
     line-height: 1.2;
 }
 
+.student-nickname {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #4b5563;
+    margin: 0 0 6px;
+    text-align: center;
+    line-height: 1.1;
+}
+
+.student-alias {
+    margin-top: 8px;
+    margin-bottom: 12px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    font-weight: 800;
+    font-size: 0.8rem;
+    color: #64748b;
+    display: block;
+    width: fit-content;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
 .student-institute {
     margin-top: 0;
     margin-bottom: 12px;

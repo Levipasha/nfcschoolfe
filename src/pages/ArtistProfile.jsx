@@ -60,7 +60,8 @@ const ArtistProfile = ({ artistData }) => {
         instagramPosts: '',
         instagramFollowers: '',
         instagramFollowing: '',
-        instagramAccountBio: ''
+        instagramAccountBio: '',
+        profileTheme: 'mono'
     });
 
     const [photoFile, setPhotoFile] = useState(null);
@@ -132,7 +133,8 @@ const ArtistProfile = ({ artistData }) => {
                 instagramPosts: artistData.instagramPosts || '',
                 instagramFollowers: artistData.instagramFollowers || '',
                 instagramFollowing: artistData.instagramFollowing || '',
-                instagramAccountBio: artistData.instagramAccountBio || ''
+                instagramAccountBio: artistData.instagramAccountBio || '',
+                profileTheme: artistData.profileTheme || 'mono'
             });
         }
     }, [token, artistIdParam, artistData]);
@@ -216,7 +218,8 @@ const ArtistProfile = ({ artistData }) => {
                     instagramPosts: data.data.instagramPosts || '',
                     instagramFollowers: data.data.instagramFollowers || '',
                     instagramFollowing: data.data.instagramFollowing || '',
-                    instagramAccountBio: data.data.instagramAccountBio || ''
+                    instagramAccountBio: data.data.instagramAccountBio || '',
+                    profileTheme: data.data.profileTheme || 'mono'
                 });
             } else {
                 setError('Artist not found');
@@ -335,7 +338,7 @@ const ArtistProfile = ({ artistData }) => {
                 return;
             }
 
-            // 3. Submit profile with updated photo URL and owner info
+            // 3. Submit profile with updated photo URL, theme and owner info
             const finalData = {
                 ...formData,
                 photo: finalPhotoUrl,
@@ -535,6 +538,26 @@ const ArtistProfile = ({ artistData }) => {
                                             <label>Biography</label>
                                             <textarea name="bio" value={formData.bio} onChange={handleInputChange} rows="3" placeholder="A short story about your creative journey..." />
                                         </div>
+                                        <div className="setup-input-group">
+                                            <label>Profile Theme</label>
+                                            <div className="theme-choices-row">
+                                                {[
+                                                    { id: 'mono', label: 'Mono Dark' },
+                                                    { id: 'classic', label: 'Classic Light' },
+                                                    { id: 'neon', label: 'Neon Glow' },
+                                                    { id: 'art', label: 'Art Red/Black' }
+                                                ].map((theme) => (
+                                                    <button
+                                                        key={theme.id}
+                                                        type="button"
+                                                        className={`theme-pill ${formData.profileTheme === theme.id ? 'selected' : ''}`}
+                                                        onClick={() => setFormData(prev => ({ ...prev, profileTheme: theme.id }))}
+                                                    >
+                                                        <span className="theme-pill-label">{theme.label}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div className="form-step">
@@ -683,8 +706,11 @@ const ArtistProfile = ({ artistData }) => {
     }
 
     // REGULAR PROFILE VIEW – full card flip: front = full profile, back = artist badges
+    const activeTheme = artist.profileTheme || 'mono';
+    const slideGallery = (artist.gallery || []).slice(0, 3);
+
     return (
-        <div className="artist-profile-wrapper">
+        <div className={`artist-profile-wrapper theme-${activeTheme}`}>
             <div className="profile-flip-container" onClick={handleFlip}>
                 <div
                     className={`profile-flip-card ${isFlipped ? 'flipped' : ''} ${flipAnim} ${isFlipAnimating ? 'is-flip-animating' : ''}`}
@@ -719,9 +745,9 @@ const ArtistProfile = ({ artistData }) => {
                                 <div className="artist-events-block">
                                     <h3 className="section-label">EVENTS</h3>
                                     <div className="artist-swiper-wrap fade-in" onClick={(e) => e.stopPropagation()}>
-                                        {artist.gallery && artist.gallery.length > 0 ? (
+                                        {slideGallery.length > 0 ? (
                                             <Swiper
-                                                key={`events-swiper-${artist.gallery.length}`}
+                                                key={`events-swiper-${slideGallery.length}`}
                                                 onSwiper={(swiper) => {
                                                     eventsSwiperRef.current = swiper;
                                                     const playActiveVideoOnly = () => {
@@ -758,12 +784,12 @@ const ArtistProfile = ({ artistData }) => {
                                                     modifier: 2.2,
                                                     slideShadows: true
                                                 }}
-                                                loop={artist.gallery.length > 1}
+                                                loop={slideGallery.length > 1}
                                                 pagination={{ clickable: true }}
                                                 modules={[EffectCoverflow, Pagination]}
                                                 className="artist-swiper"
                                             >
-                                                {artist.gallery.map((item, index) => {
+                                                {slideGallery.map((item, index) => {
                                                     const mediaUrl = typeof item === 'string' ? item : item.url;
                                                     const mediaName = typeof item === 'string' ? 'Untitled' : (item.name || 'Untitled');
                                                     const isVideo = isVideoUrl(mediaUrl);
