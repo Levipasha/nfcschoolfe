@@ -1,20 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { adminAPI, schoolAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import SchoolFormModal from '../components/SchoolFormModal';
 import PanelSwitcher from '../components/PanelSwitcher';
 import './AdminDashboard.css';
-
-const BADGE_KEYS = [
-    { id: 'rising', label: 'Rising Star', target: 1 },
-    { id: 'curator', label: 'Curator', target: 5 },
-    { id: 'popular', label: 'Popular', target: 10 },
-    { id: 'portfolio', label: 'Portfolio Pro', target: 10 },
-    { id: 'connector', label: 'Connector', target: 5 },
-    { id: 'legend', label: 'Legend', target: 50 }
-];
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -29,11 +19,6 @@ const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('schools');
     const [showSchoolModal, setShowSchoolModal] = useState(false);
     const [editingSchool, setEditingSchool] = useState(null);
-    const [showBadgeModal, setShowBadgeModal] = useState(false);
-    const [editingArtist, setEditingArtist] = useState(null);
-    const [badgeForm, setBadgeForm] = useState({});
-    const [savingBadges, setSavingBadges] = useState(false);
-
     useEffect(() => {
         fetchDashboardData();
     }, [statusFilter, searchTerm]);
@@ -166,43 +151,6 @@ const AdminDashboard = () => {
     const viewStudentProfile = (student) => {
         const url = `/student?id=${student.studentId}`;
         window.open(url, '_blank');
-    };
-
-    const openBadgeModal = (artist) => {
-        if (!artist || !artist._id) return;
-        const over = artist.badgeOverrides && typeof artist.badgeOverrides === 'object' ? artist.badgeOverrides : {};
-        const initial = {};
-        BADGE_KEYS.forEach(({ id }) => {
-            const v = over[id];
-            initial[id] = v !== undefined && v !== null && v !== '' ? String(v) : '';
-        });
-        setEditingArtist(artist);
-        setBadgeForm(initial);
-        setShowBadgeModal(true);
-    };
-
-    const handleSaveBadges = async () => {
-        if (!editingArtist) return;
-        setSavingBadges(true);
-        try {
-            const badgeOverrides = {};
-            BADGE_KEYS.forEach(({ id }) => {
-                const v = badgeForm[id];
-                if (v !== '' && v !== undefined && v !== null) {
-                    const n = Number(v);
-                    if (!Number.isNaN(n) && n >= 0) badgeOverrides[id] = n;
-                }
-            });
-            await adminAPI.updateArtist(editingArtist._id, { badgeOverrides });
-            alert('Badges updated successfully.');
-            setShowBadgeModal(false);
-            setEditingArtist(null);
-            if (activeTab === 'artists') fetchArtists();
-        } catch (e) {
-            alert(e.response?.data?.message || 'Failed to update badges');
-        } finally {
-            setSavingBadges(false);
-        }
     };
 
     if (loading && !schools.length) {
@@ -377,15 +325,6 @@ const AdminDashboard = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="card-footer">
-                                        <button
-                                            type="button"
-                                            className="btn-edit-badges"
-                                            onClick={(e) => { e.stopPropagation(); openBadgeModal(artist); }}
-                                        >
-                                            Edit badges
-                                        </button>
-                                    </div>
                                 </div>
                             ))}
                             {(!artists || artists.length === 0) && activeTab === 'artists' && (
@@ -410,44 +349,6 @@ const AdminDashboard = () => {
                 school={editingSchool}
             />
 
-            {/* Edit artist badges modal – render in portal so it's not clipped */}
-            {showBadgeModal && editingArtist && createPortal(
-                <div
-                    className="badge-modal-overlay"
-                    onClick={() => !savingBadges && setShowBadgeModal(false)}
-                    onKeyDown={(e) => e.key === 'Escape' && !savingBadges && setShowBadgeModal(false)}
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="badge-modal-title"
-                >
-                    <div className="badge-modal-content" onClick={e => e.stopPropagation()}>
-                        <h3 id="badge-modal-title" className="badge-modal-title">Edit badges — {editingArtist.name || editingArtist.artistId || 'Artist'}</h3>
-                        <p className="badge-modal-hint">Override the values shown on the artist profile card. Leave blank to use automatic values.</p>
-                        <div className="badge-form-grid">
-                            {BADGE_KEYS.map(({ id, label, target }) => (
-                                <div key={id} className="badge-form-row">
-                                    <label htmlFor={`badge-${id}`}>{label}</label>
-                                    <input
-                                        id={`badge-${id}`}
-                                        type="number"
-                                        min={0}
-                                        placeholder={`Target: ${target}`}
-                                        value={badgeForm[id] ?? ''}
-                                        onChange={(e) => setBadgeForm(prev => ({ ...prev, [id]: e.target.value }))}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                        <div className="badge-modal-actions">
-                            <button type="button" className="badge-modal-btn badge-modal-btn-cancel" onClick={() => setShowBadgeModal(false)} disabled={savingBadges}>Cancel</button>
-                            <button type="button" className="badge-modal-btn badge-modal-btn-save" onClick={handleSaveBadges} disabled={savingBadges}>
-                                {savingBadges ? 'Saving...' : 'Save badges'}
-                            </button>
-                        </div>
-                    </div>
-                </div>,
-                document.body
-            )}
         </div>
     );
 };

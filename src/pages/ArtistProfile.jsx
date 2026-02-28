@@ -5,7 +5,6 @@ import { EffectCoverflow, Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/effect-coverflow';
 import 'swiper/css/pagination';
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { artistAPI } from '../services/api';
 import { fixImageUrl } from '../utils/imageHelper';
 
@@ -36,9 +35,6 @@ const ArtistProfile = ({ artistData }) => {
     const [password, setPassword] = useState('');
     const [authError, setAuthError] = useState('');
     const [isEditing, setIsEditing] = useState(false);
-    const [isFlipped, setIsFlipped] = useState(false);
-    const [flipAnim, setFlipAnim] = useState('');
-    const [isFlipAnimating, setIsFlipAnimating] = useState(false);
     const eventsSwiperRef = useRef(null);
 
     // Setup form state
@@ -399,26 +395,6 @@ const ArtistProfile = ({ artistData }) => {
         }
     };
 
-    const handleFlip = () => {
-        if (isFlipAnimating) return;
-        const goingToBack = !isFlipped;
-        if (goingToBack) {
-            setIsFlipped(true);
-        }
-        setFlipAnim(goingToBack ? 'flip-to-back' : 'flip-to-front');
-        setIsFlipAnimating(true);
-    };
-
-    const handleFlipAnimEnd = (e) => {
-        if (!isFlipAnimating) return;
-        const animName = e?.animationName || '';
-        setIsFlipAnimating(false);
-        setFlipAnim('');
-        if (animName === 'flipToFront') {
-            setIsFlipped(false);
-        }
-    };
-
     if (loading || authLoading) {
         return (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#0f172a' }}>
@@ -705,20 +681,18 @@ const ArtistProfile = ({ artistData }) => {
         );
     }
 
-    // REGULAR PROFILE VIEW – full card flip: front = full profile, back = artist badges
+    // REGULAR PROFILE VIEW – profile only, no flip
     const activeTheme = artist.profileTheme || 'mono';
-    const slideGallery = (artist.gallery || []).slice(0, 3);
+    const slideGallery = (artist.gallery || [])
+        .filter((item) => {
+            const url = typeof item === 'string' ? item : item?.url;
+            return url && String(url).trim();
+        })
+        .slice(0, 3);
 
     return (
         <div className={`artist-profile-wrapper theme-${activeTheme}`}>
-            <div className="profile-flip-container" onClick={handleFlip}>
-                <div
-                    className={`profile-flip-card ${isFlipped ? 'flipped' : ''} ${flipAnim} ${isFlipAnimating ? 'is-flip-animating' : ''}`}
-                    onAnimationEnd={handleFlipAnimEnd}
-                >
-                    {/* Front: full profile card */}
-                    <div className="profile-flip-front profile-flip-side">
-                        <div className="artist-profile-card slide-up">
+            <div className="artist-profile-card slide-up">
                             <div className="profile-header-gradient" style={{ backgroundImage: `url(${fixImageUrl(artist.backgroundPhoto)})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
                                 {!artist.backgroundPhoto && <div className="gradient-overlay"></div>}
                                 <div className="profile-photo-container" onClick={(e) => { e.stopPropagation(); setShowPhotoModal(true); }}>
@@ -875,78 +849,9 @@ const ArtistProfile = ({ artistData }) => {
                                         )}
                                     </div>
 
-                                    <button type="button" className="flip-tap-hint flip-tap-btn flip-tap-below" onClick={(e) => { e.stopPropagation(); handleFlip(); }}>Tap card to see badges</button>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    {/* Back: full-cover badges card (reference style – summary stats + awards grid) */}
-                    <div className="profile-flip-back profile-flip-side">
-                        <div className="profile-card-back-content">
-                            <button type="button" className="profile-back-hint profile-back-flip-btn" onClick={(e) => { e.stopPropagation(); handleFlip(); }}>Tap card to see profile</button>
-
-                            {/* Top: 4 summary milestone cards */}
-                            <div className="profile-back-milestones">
-                                <div className="profile-milestone-card milestone-views">
-                                    <span className="milestone-label">Profile Views</span>
-                                    <span className="milestone-value">{artist.scanCount || 0}</span>
-                                </div>
-                                <div className="profile-milestone-card milestone-works">
-                                    <span className="milestone-label">Works</span>
-                                    <span className="milestone-value">{artist.gallery?.length || 0}</span>
-                                </div>
-                                <div className="profile-milestone-card milestone-connections">
-                                    <span className="milestone-label">Connections</span>
-                                    <span className="milestone-value">{[artist.instagram, artist.twitter, artist.linkedin, artist.whatsapp, artist.website].filter(Boolean).length}</span>
-                                </div>
-                            </div>
-
-                            <h2 className="profile-back-awards-title">Awards</h2>
-                            <div className="profile-back-awards-grid">
-                                {(() => {
-                                    const over = artist.badgeOverrides || {};
-                                    const views = artist.scanCount || 0;
-                                    const works = artist.gallery?.length || 0;
-                                    const connections = [artist.instagram, artist.twitter, artist.linkedin, artist.whatsapp, artist.website].filter(Boolean).length;
-                                    const badges = [
-                                        { id: 'rising', icon: '⭐', title: 'Rising Star', value: over.rising != null ? over.rising : views, target: 1, color: 'badge-pink' },
-                                        { id: 'curator', icon: '🖼️', title: 'Curator', value: over.curator != null ? over.curator : Math.min(works, 5), target: 5, color: 'badge-amber' },
-                                        { id: 'popular', icon: '🔥', title: 'Popular', value: over.popular != null ? over.popular : Math.min(views, 10), target: 10, color: 'badge-orange' },
-                                        { id: 'portfolio', icon: '✨', title: 'Portfolio Pro', value: over.portfolio != null ? over.portfolio : Math.min(works, 10), target: 10, color: 'badge-teal' },
-                                        { id: 'connector', icon: '🔗', title: 'Connector', value: over.connector != null ? over.connector : Math.min(connections, 5), target: 5, color: 'badge-purple' },
-                                        { id: 'legend', icon: '👑', title: 'Legend', value: over.legend != null ? over.legend : Math.min(views, 50), target: 50, color: 'badge-blue' },
-                                    ];
-                                    return badges.map((b) => (
-                                        <div key={b.id} className={`profile-award-badge ${b.color}`}>
-                                            <div className="award-badge-circle">
-                                                <span className="award-badge-icon">{b.icon}</span>
-                                                <span className="award-badge-value">{b.value}</span>
-                                            </div>
-                                            <span className="award-badge-title">{b.title}</span>
-                                            <span className="award-badge-progress">{b.value} of {b.target}</span>
-                                        </div>
-                                    ));
-                                })()}
-                            </div>
-                            <div className="profile-back-lottie">
-                                <DotLottieReact
-                                    src="https://lottie.host/658d0b13-c757-4a4f-ae69-df850b443cf7/pFGUZjnHbm.lottie"
-                                    loop
-                                    autoplay
-                                    style={{ width: '100%', height: '220px' }}
-                                />
-                            </div>
-                            <div className="profile-footer profile-footer-artist profile-footer-back">
-                                <div className="premium-brand-badge">
-                                    <span className="badge-text badge-encrypted">End-to-end encrypted</span><br />
-                                    <span className="badge-text">Powered by <a href="https://nanoprofiles.com" target="_blank" rel="noopener noreferrer" className="badge-link">NanoProfiles</a></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             {/* Profile preview card (card-style UI, not zoom) */}
             {showPhotoModal && (
