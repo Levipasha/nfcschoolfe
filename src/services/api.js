@@ -1,8 +1,10 @@
 import axios from 'axios';
 
-const API_URL =
-    import.meta.env.VITE_API_URL ||
-    `${window.location.protocol}//${window.location.hostname}:5000`;
+const rawUrl = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:5000`;
+// Ensure absolute URL with protocol (prevents relative path like /admin/nfcschoolbe.vercel.app)
+const API_URL = rawUrl && !rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')
+    ? `https://${rawUrl.replace(/^\/+/, '')}`
+    : rawUrl;
 
 const api = axios.create({
     baseURL: API_URL,
