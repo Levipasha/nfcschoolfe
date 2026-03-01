@@ -88,6 +88,32 @@
     margin-bottom: var(--spacing-lg);
 }
 
+.otp-sent-hint {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-lg);
+    text-align: center;
+}
+
+.otp-sent-hint strong {
+    color: var(--text-primary);
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-sm);
+}
+
+.btn-link:hover:not(:disabled) {
+    color: var(--text-primary);
+    text-decoration: underline;
+}
+
 .btn-full {
     width: 100%;
 }

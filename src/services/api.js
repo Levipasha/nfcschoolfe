@@ -42,7 +42,8 @@ export const studentAPI = {
 };
 
 export const adminAPI = {
-    login: (credentials) => api.post('/api/admin/login', credentials),
+    sendOtp: (email) => api.post('/api/admin/send-otp', { email }),
+    verifyOtp: (email, otp) => api.post('/api/admin/verify-otp', { email, otp }),
 
     getStudents: (params) => api.get('/api/admin/students', { params }),
 
