@@ -8,6 +8,7 @@ import SchoolDetails from './pages/SchoolDetails';
 import ArtistLogin from './pages/ArtistLogin';
 import ArtistDashboard from './pages/ArtistDashboard';
 import ArtistProfile from './pages/ArtistProfile';
+import GeneralProfileDashboard from './pages/GeneralProfileDashboard';
 import ProfileView from './pages/ProfileView';
 import './index.css';
 
@@ -26,6 +27,9 @@ function App() {
                 <Route path="/artist/:token" element={<ArtistProfile />} />
                 <Route path="/artist/login" element={<ArtistLogin />} />
                 <Route path="/artist/dashboard" element={<ArtistDashboard />} />
+
+                {/* General Profile Routes */}
+                <Route path="/general/dashboard" element={<GeneralProfileDashboard />} />
 
                 {/* Admin Routes */}
                 <Route path="/admin/login" element={<AdminLogin />} />

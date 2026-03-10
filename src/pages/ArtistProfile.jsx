@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { EffectCoverflow, Pagination } from 'swiper/modules';
+import { EffectCoverflow, Pagination, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/effect-coverflow';
 import 'swiper/css/pagination';
 import { artistAPI } from '../services/api';
 import { fixImageUrl } from '../utils/imageHelper';
+import { getThemeById, resolveFontFamily } from '../constants/generalThemes';
 
 const isVideoUrl = (url) => {
     if (!url || typeof url !== 'string') return false;
@@ -19,6 +20,7 @@ const ArtistProfile = ({ artistData }) => {
     const { token } = useParams();
     const [searchParams] = useSearchParams();
     const artistIdParam = searchParams.get('id');
+    const artIdParam = searchParams.get('art');
 
     const [artist, setArtist] = useState(artistData || null);
     const [loading, setLoading] = useState(artistData ? false : true);
@@ -57,7 +59,9 @@ const ArtistProfile = ({ artistData }) => {
         instagramFollowers: '',
         instagramFollowing: '',
         instagramAccountBio: '',
-        profileTheme: 'mono'
+        profileTheme: 'mono',
+        profileFont: 'outfit',
+        bioFont: 'outfit'
     });
 
     const [photoFile, setPhotoFile] = useState(null);
@@ -108,6 +112,8 @@ const ArtistProfile = ({ artistData }) => {
         if (!artistData) {
             fetchArtistProfile();
         } else {
+            // Update artist state from props
+            setArtist(artistData);
             // Propagate prop data to form state for immediate editing availability
             setFormData({
                 name: artistData.name || '',
@@ -130,7 +136,9 @@ const ArtistProfile = ({ artistData }) => {
                 instagramFollowers: artistData.instagramFollowers || '',
                 instagramFollowing: artistData.instagramFollowing || '',
                 instagramAccountBio: artistData.instagramAccountBio || '',
-                profileTheme: artistData.profileTheme || 'mono'
+                profileTheme: artistData.profileTheme || 'mono',
+                profileFont: artistData.profileFont || 'outfit',
+                bioFont: artistData.bioFont || (artistData.profileFont || 'outfit')
             });
         }
     }, [token, artistIdParam, artistData]);
@@ -215,7 +223,9 @@ const ArtistProfile = ({ artistData }) => {
                     instagramFollowers: data.data.instagramFollowers || '',
                     instagramFollowing: data.data.instagramFollowing || '',
                     instagramAccountBio: data.data.instagramAccountBio || '',
-                    profileTheme: data.data.profileTheme || 'mono'
+                    profileTheme: data.data.profileTheme || 'mono',
+                    profileFont: data.data.profileFont || 'outfit',
+                    bioFont: data.data.bioFont || (data.data.profileFont || 'outfit')
                 });
             } else {
                 setError('Artist not found');
@@ -257,6 +267,16 @@ const ArtistProfile = ({ artistData }) => {
     const [galleryUploads, setGalleryUploads] = useState([]); // Array of { file: File, name: string }
     const [newItemName, setNewItemName] = useState('');
     const [newItemFile, setNewItemFile] = useState(null);
+
+    // Art description translation state (for "ABOUT THIS ART")
+    const [artLangOpen, setArtLangOpen] = useState(false);
+    const [artLangSearch, setArtLangSearch] = useState('');
+    const [artLangLoading, setArtLangLoading] = useState(false);
+    const [artLangError, setArtLangError] = useState('');
+    const [artSelectedLang, setArtSelectedLang] = useState('en');
+    const [artDescriptionTranslated, setArtDescriptionTranslated] = useState(null);
+    const [showArtGallery, setShowArtGallery] = useState(false);
+    const [artGallerySelected, setArtGallerySelected] = useState(null);
 
     const handleGalleryFilesChange = (e) => {
         if (e.target.files && e.target.files[0]) {
@@ -359,7 +379,11 @@ const ArtistProfile = ({ artistData }) => {
                 }));
 
                 setIsEditing(false);
-                alert('Profile updated successfully!');
+
+                // Redirect to Nano Profiles dashboard so they can manage it
+                const dashboardUrl = import.meta.env.VITE_DASHBOARD_URL || (['localhost', '127.0.0.1'].includes(window.location.hostname) ? `http://${window.location.hostname}:3000` : window.location.origin);
+                alert('Profile set up successfully! Heading to your dashboard to manage your profiles.');
+                window.location.href = `${dashboardUrl}/profile`;
             }
         } catch (error) {
             console.error('Error setting up profile:', error);
@@ -682,7 +706,28 @@ const ArtistProfile = ({ artistData }) => {
     }
 
     // REGULAR PROFILE VIEW – profile only, no flip
-    const activeTheme = artist.profileTheme || 'mono';
+    const theme = getThemeById(artist.profileTheme || 'mono');
+    const activeTheme = theme.id;
+    const activeHeadingFont = artist.profileFont || 'outfit';
+    const activeBodyFont = artist.bioFont || activeHeadingFont;
+
+    // If coming from "Link Your Art" with a specific art ID, resolve that artwork
+    let activeArt = null;
+    let activeArtImages = [];
+    if (artIdParam && artist.artLinks) {
+        const linksArray = Array.isArray(artist.artLinks)
+            ? artist.artLinks
+            : Object.values(artist.artLinks);
+        activeArt = linksArray.find((item) => String(item.id) === String(artIdParam));
+        if (activeArt) {
+            if (Array.isArray(activeArt.images) && activeArt.images.length > 0) {
+                activeArtImages = activeArt.images.filter(Boolean);
+            } else if (activeArt.image) {
+                activeArtImages = [activeArt.image];
+            }
+        }
+    }
+
     const slideGallery = (artist.gallery || [])
         .filter((item) => {
             const url = typeof item === 'string' ? item : item?.url;
@@ -690,168 +735,660 @@ const ArtistProfile = ({ artistData }) => {
         })
         .slice(0, 3);
 
-    return (
-        <div className={`artist-profile-wrapper theme-${activeTheme}`}>
-            <div className="artist-profile-card slide-up">
-                            <div className="profile-header-gradient" style={{ backgroundImage: `url(${fixImageUrl(artist.backgroundPhoto)})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-                                {!artist.backgroundPhoto && <div className="gradient-overlay"></div>}
-                                <div className="profile-photo-container" onClick={(e) => { e.stopPropagation(); setShowPhotoModal(true); }}>
-                                    <img src={fixImageUrl(artist.photo)} alt={artist.name} className="profile-photo-circle" />
+    if (activeArt) {
+        return (
+            <div className="artist-profile-wrapper theme-classic">
+                <div
+                    className="artist-profile-card slide-up"
+                    style={{
+                        paddingTop: 0,
+                        background: '#ffffff',
+                        color: '#000000',
+                        overflow: 'hidden',
+                        '--font-heading': 'system-ui, -apple-system, sans-serif',
+                        '--font-body': 'system-ui, -apple-system, sans-serif'
+                    }}
+                >
+                    <div className="profile-info-content" style={{ paddingTop: 0 }}>
+                        {/* Slideshow of all artwork images (gifs/images) at the very top */}
+                        {activeArtImages.length > 0 && (
+                            <div className="artist-events-block" style={{ marginTop: 0 }}>
+                                <div className="artist-swiper-wrap fade-in" onClick={(e) => e.stopPropagation()}>
+                                    <Swiper
+                                        key={`art-swiper-${activeArtImages.length}`}
+                                        grabCursor
+                                        slidesPerView={1}
+                                        spaceBetween={0}
+                                        loop={activeArtImages.length > 1}
+                                        autoplay={{ delay: 2500, disableOnInteraction: false }}
+                                        pagination={{ clickable: true }}
+                                        modules={[EffectCoverflow, Pagination, Autoplay]}
+                                        className="artist-swiper"
+                                    >
+                                        {activeArtImages.map((imgUrl, index) => {
+                                            const fixedUrl = fixImageUrl(imgUrl);
+                                            return (
+                                                <SwiperSlide key={index}>
+                                                    <div
+                                                        className="artist-swiper-slide"
+                                                        style={{
+                                                            backgroundImage: `url("${fixedUrl}")`,
+                                                            backgroundRepeat: 'no-repeat',
+                                                            backgroundSize: 'cover',
+                                                            backgroundPosition: 'center',
+                                                        }}
+                                                        onClick={(e) => { e.stopPropagation(); setSelectedImage(imgUrl); setShowPhotoModal(true); }}
+                                                    />
+                                                </SwiperSlide>
+                                            );
+                                        })}
+                                    </Swiper>
                                 </div>
                             </div>
-                            <div className="profile-info-content">
-                                <div className="artist-name-art-center">
-                                    <div className="name-edit-row">
-                                        <h1 className="display-name">{artist.name}</h1>
-                                    </div>
-                                    <p className="specialization-badge">{artist.specialization || "Creative Professional"}</p>
-                                </div>
+                        )}
 
-                                <div className="unified-content-container">
-                                    <div className="content-section">
-                                        <h3 className="section-label">ABOUT</h3>
-                                        <p className="bio-text">
-                                            {artist.bio || "No bio provided yet. This artist is currently crafting their story."}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="artist-events-block">
-                                    <h3 className="section-label">EVENTS</h3>
-                                    <div className="artist-swiper-wrap fade-in" onClick={(e) => e.stopPropagation()}>
-                                        {slideGallery.length > 0 ? (
-                                            <Swiper
-                                                key={`events-swiper-${slideGallery.length}`}
-                                                onSwiper={(swiper) => {
-                                                    eventsSwiperRef.current = swiper;
-                                                    const playActiveVideoOnly = () => {
-                                                        const activeEl = swiper.slides?.[swiper.activeIndex];
-                                                        swiper.slides?.forEach((el) => {
-                                                            const video = el?.querySelector('.artist-slide-video');
-                                                            if (video) {
-                                                                if (el === activeEl) video.play().catch(() => {});
-                                                                else video.pause();
-                                                            }
-                                                        });
-                                                    };
-                                                    setTimeout(playActiveVideoOnly, 300);
-                                                }}
-                                                onSlideChangeTransitionEnd={(swiper) => {
-                                                    const activeEl = swiper.slides?.[swiper.activeIndex];
-                                                    swiper.slides?.forEach((el) => {
-                                                        const video = el?.querySelector('.artist-slide-video');
-                                                        if (video) {
-                                                            if (el === activeEl) video.play().catch(() => {});
-                                                            else video.pause();
-                                                        }
-                                                    });
-                                                }}
-                                                effect="coverflow"
-                                                grabCursor
-                                                centeredSlides
-                                                slidesPerView="auto"
-                                                spaceBetween={24}
-                                                coverflowEffect={{
-                                                    rotate: 0,
-                                                    stretch: 20,
-                                                    depth: 80,
-                                                    modifier: 2.2,
-                                                    slideShadows: true
-                                                }}
-                                                loop={slideGallery.length > 1}
-                                                pagination={{ clickable: true }}
-                                                modules={[EffectCoverflow, Pagination]}
-                                                className="artist-swiper"
-                                            >
-                                                {slideGallery.map((item, index) => {
-                                                    const mediaUrl = typeof item === 'string' ? item : item.url;
-                                                    const mediaName = typeof item === 'string' ? 'Untitled' : (item.name || 'Untitled');
-                                                    const isVideo = isVideoUrl(mediaUrl);
-                                                    const fixedUrl = fixImageUrl(mediaUrl);
-                                                    return (
-                                                        <SwiperSlide key={index}>
-                                                            <div
-                                                                className="artist-swiper-slide"
-                                                                style={!isVideo ? {
-                                                                    background: `linear-gradient(to top, #0f2027, #203a4300, #2c536400), url("${fixedUrl}") no-repeat 50% 50% / cover`
-                                                                } : undefined}
-                                                                onClick={(e) => { e.stopPropagation(); setSelectedImage(mediaUrl); setShowPhotoModal(true); }}
-                                                            >
-                                                                {isVideo ? (
-                                                                    <>
-                                                                        <video
-                                                                            className="artist-slide-video"
-                                                                            src={fixedUrl}
-                                                                            muted
-                                                                            loop
-                                                                            playsInline
-                                                                            autoPlay={false}
-                                                                            style={{ pointerEvents: 'none' }}
-                                                                        />
-                                                                        <div className="artist-swiper-slide-overlay" aria-hidden="true" />
-                                                                    </>
-                                                                ) : null}
-                                                                <div className="artist-swiper-slide-content">
-                                                                    <h2>{mediaName}</h2>
-                                                                    <button type="button" className="artist-swiper-explore" onClick={(e) => { e.stopPropagation(); setSelectedImage(mediaUrl); setShowPhotoModal(true); }}>
-                                                                        View
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </SwiperSlide>
-                                                    );
-                                                })}
-                                            </Swiper>
-                                        ) : (
-                                            <div className="mini-slideshow-placeholder">
-                                                <div className="placeholder-icon">🖼️</div>
-                                                <p className="placeholder-title">No events yet</p>
-                                                <p className="placeholder-desc">Images added from the landing page or by admin will appear here.</p>
+                        {/* Center-screen language picker modal */}
+                        {artLangOpen && (
+                            <div
+                                onClick={() => { if (!artLangLoading) { setArtLangOpen(false); setArtLangError(''); } }}
+                                style={{
+                                    position: 'fixed',
+                                    inset: 0,
+                                    background: 'rgba(15,23,42,0.72)',
+                                    backdropFilter: 'blur(14px)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    zIndex: 60
+                                }}
+                            >
+                                <div
+                                    onClick={e => e.stopPropagation()}
+                                    style={{
+                                        width: '92%',
+                                        maxWidth: '380px',
+                                        background: 'linear-gradient(145deg, rgba(15,23,42,0.98), rgba(15,23,42,0.92))',
+                                        borderRadius: '22px',
+                                        border: '1px solid rgba(148,163,184,0.5)',
+                                        boxShadow: '0 40px 90px rgba(15,23,42,0.95)',
+                                        padding: '18px 20px'
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                                            <div style={{ fontSize: '0.78rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#6b7280' }}>Translate description</div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <div style={{ fontSize: '1.15rem' }}>🌐</div>
+                                                <div style={{ fontSize: '0.9rem', color: '#e5e7eb' }}>Choose a language</div>
                                             </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setArtLangOpen(false); setArtLangError(''); }}
+                                            style={{
+                                                border: 'none',
+                                                background: 'transparent',
+                                                color: '#9ca3af',
+                                                fontSize: '1.1rem',
+                                                cursor: 'pointer',
+                                                padding: 0,
+                                                lineHeight: 1
+                                            }}
+                                            aria-label="Close language picker"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+
+                                    <input
+                                        type="text"
+                                        placeholder="Search language…"
+                                        value={artLangSearch}
+                                        onChange={e => setArtLangSearch(e.target.value)}
+                                        style={{
+                                            width: '100%',
+                                            padding: '8px 11px',
+                                            borderRadius: '999px',
+                                            border: '1px solid rgba(51,65,85,0.9)',
+                                            background: 'rgba(15,23,42,0.95)',
+                                            color: '#e5e7eb',
+                                            fontSize: '0.78rem',
+                                            boxShadow: 'inset 0 0 0 1px rgba(15,23,42,0.6)',
+                                            textTransform: 'none',
+                                            letterSpacing: 0,
+                                            marginBottom: '8px',
+                                            outline: 'none'
+                                        }}
+                                    />
+
+                                    {artLangError && (
+                                        <div style={{ color: '#f97373', fontSize: '0.72rem', marginBottom: '6px' }}>{artLangError}</div>
+                                    )}
+
+                                    <div
+                                        className="artist-lang-scroll"
+                                        style={{
+                                            maxHeight: '220px',
+                                            overflowY: 'auto',
+                                            paddingRight: '2px',
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                                            gap: '6px'
+                                        }}
+                                    >
+                                        {[
+                                            // Global popular languages
+                                            { code: 'en', label: 'English' },
+                                            { code: 'es', label: 'Spanish' },
+                                            { code: 'fr', label: 'French' },
+                                            { code: 'de', label: 'German' },
+                                            { code: 'it', label: 'Italian' },
+                                            { code: 'pt', label: 'Portuguese' },
+                                            { code: 'ru', label: 'Russian' },
+                                            { code: 'zh-CN', label: 'Chinese (Simplified)' },
+                                            { code: 'ja', label: 'Japanese' },
+                                            { code: 'ko', label: 'Korean' },
+                                            { code: 'tr', label: 'Turkish' },
+                                            { code: 'id', label: 'Indonesian' },
+                                            { code: 'th', label: 'Thai' },
+                                            { code: 'vi', label: 'Vietnamese' },
+
+                                            // Major Indian languages
+                                            { code: 'hi', label: 'Hindi' },
+                                            { code: 'te', label: 'Telugu' },
+                                            { code: 'ta', label: 'Tamil' },
+                                            { code: 'kn', label: 'Kannada' },
+                                            { code: 'ml', label: 'Malayalam' },
+                                            { code: 'mr', label: 'Marathi' },
+                                            { code: 'bn', label: 'Bengali' },
+                                            { code: 'gu', label: 'Gujarati' },
+                                            { code: 'pa', label: 'Punjabi' },
+                                            { code: 'ur', label: 'Urdu' },
+                                            { code: 'or', label: 'Odia' },
+                                            { code: 'as', label: 'Assamese' }
+                                        ]
+                                            .filter(lang => {
+                                                const q = artLangSearch.toLowerCase().trim();
+                                                if (!q) return true;
+                                                return (
+                                                    lang.label.toLowerCase().includes(q) ||
+                                                    lang.code.toLowerCase().includes(q)
+                                                );
+                                            })
+                                            .map(lang => (
+                                                <button
+                                                    key={lang.code}
+                                                    type="button"
+                                                    disabled={artLangLoading && artSelectedLang === lang.code}
+                                                    onClick={async () => {
+                                                        if (lang.code === 'en') {
+                                                            setArtSelectedLang('en');
+                                                            setArtDescriptionTranslated(null);
+                                                            setArtLangOpen(false);
+                                                            setArtLangSearch('');
+                                                            setArtLangError('');
+                                                            return;
+                                                        }
+                                                        try {
+                                                            setArtLangLoading(true);
+                                                            setArtLangError('');
+                                                            setArtLangSearch('');
+                                                            const res = await fetch(
+                                                                `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${encodeURIComponent(lang.code)}&dt=t&q=${encodeURIComponent(activeArt.description)}`
+                                                            );
+                                                            const data = await res.json();
+                                                            const translated = Array.isArray(data[0])
+                                                                ? data[0].map(part => part[0]).join(' ')
+                                                                : activeArt.description;
+                                                            setArtSelectedLang(lang.code);
+                                                            setArtDescriptionTranslated(translated);
+                                                            setArtLangOpen(false);
+                                                        } catch (e) {
+                                                            setArtLangError('Could not translate. Try again.');
+                                                        } finally {
+                                                            setArtLangLoading(false);
+                                                        }
+                                                    }}
+                                                    style={{
+                                                        width: '100%',
+                                                        textAlign: 'left',
+                                                        padding: '7px 9px',
+                                                        borderRadius: '999px',
+                                                        border: 'none',
+                                                        background: artSelectedLang === lang.code ? 'rgba(37,99,235,0.98)' : 'rgba(15,23,42,0.7)',
+                                                        color: '#e5e7eb',
+                                                        fontSize: '0.78rem',
+                                                        letterSpacing: '0.02em',
+                                                        cursor: 'pointer',
+                                                        transition: 'background 0.15s ease, transform 0.1s ease'
+                                                    }}
+                                                >
+                                                    {lang.label}
+                                                </button>
+                                            ))}
+
+                                        {/* Free-form code option so any language is possible */}
+                                        {artLangSearch.trim() && (
+                                            <button
+                                                type="button"
+                                                disabled={artLangLoading}
+                                                onClick={async () => {
+                                                    const code = artLangSearch.trim();
+                                                    if (!code) return;
+                                                    if (code.toLowerCase() === 'en' || code.toLowerCase() === 'english') {
+                                                        setArtSelectedLang('en');
+                                                        setArtDescriptionTranslated(null);
+                                                        setArtLangOpen(false);
+                                                        setArtLangSearch('');
+                                                        setArtLangError('');
+                                                        return;
+                                                    }
+                                                    try {
+                                                        setArtLangLoading(true);
+                                                        setArtLangError('');
+                                                        const res = await fetch(
+                                                            `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${encodeURIComponent(code)}&dt=t&q=${encodeURIComponent(activeArt.description)}`
+                                                        );
+                                                        const data = await res.json();
+                                                        const translated = Array.isArray(data[0])
+                                                            ? data[0].map(part => part[0]).join(' ')
+                                                            : activeArt.description;
+                                                        setArtSelectedLang(code);
+                                                        setArtDescriptionTranslated(translated);
+                                                        setArtLangOpen(false);
+                                                        setArtLangSearch('');
+                                                    } catch (e) {
+                                                        setArtLangError('Language not supported or code invalid.');
+                                                    } finally {
+                                                        setArtLangLoading(false);
+                                                    }
+                                                }}
+                                                style={{
+                                                    gridColumn: '1 / -1',
+                                                    marginTop: '4px',
+                                                    width: '100%',
+                                                    textAlign: 'center',
+                                                    padding: '7px 9px',
+                                                    borderRadius: '10px',
+                                                    border: '1px dashed rgba(148,163,184,0.7)',
+                                                    background: 'transparent',
+                                                    color: '#e5e7eb',
+                                                    fontSize: '0.76rem',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                Use "{artLangSearch.trim()}" language code
+                                            </button>
                                         )}
                                     </div>
                                 </div>
+                            </div>
+                        )}
 
-                                <div className="social-icon-row">
-                                    {artist.instagram && (
-                                        <a href={getSocialLink('instagram', artist.instagram)} target="_blank" rel="noopener noreferrer" className="social-icon-btn instagram" onClick={(e) => e.stopPropagation()} aria-label="Instagram">
-                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
-                                        </a>
-                                    )}
-                                    {artist.twitter && (
-                                        <a href={getSocialLink('twitter', artist.twitter)} target="_blank" rel="noopener noreferrer" className="social-icon-btn twitter" onClick={(e) => e.stopPropagation()} aria-label="Twitter"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z" /></svg></a>
-                                    )}
-                                    {artist.website && (
-                                        <a href={getSocialLink('website', artist.website)} target="_blank" rel="noopener noreferrer" className="social-icon-btn website" onClick={(e) => e.stopPropagation()} aria-label="Website"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></a>
-                                    )}
-                                    {artist.linkedin && (
-                                        <a href={getSocialLink('linkedin', artist.linkedin)} target="_blank" rel="noopener noreferrer" className="social-icon-btn linkedin" onClick={(e) => e.stopPropagation()} aria-label="LinkedIn"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg></a>
-                                    )}
-                                    {artist.whatsapp && (
-                                        <a href={getSocialLink('whatsapp', artist.whatsapp)} target="_blank" rel="noopener noreferrer" className="social-icon-btn whatsapp" onClick={(e) => e.stopPropagation()} aria-label="WhatsApp"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338-11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.438 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.371-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" /></svg></a>
-                                    )}
-                                </div>
-
-                                <div className="content-section">
-                                    <h3 className="section-label">GET IN TOUCH</h3>
-                                    <div className="contact-list-minimal">
-                                        {artist.email && (
-                                            <a href={`mailto:${artist.email}`} className="contact-item-minimal" onClick={(e) => e.stopPropagation()}>
-                                                <div className="contact-icon">📧</div>
-                                                <div className="contact-text">{artist.email}</div>
-                                            </a>
-                                        )}
-                                        {artist.phone && (
-                                            <a href={`tel:${artist.phone}`} className="contact-item-minimal" onClick={(e) => e.stopPropagation()}>
-                                                <div className="contact-icon">📱</div>
-                                                <div className="contact-text">{artist.phone}</div>
-                                            </a>
-                                        )}
-                                    </div>
-
-                                </div>
+                        {/* Title + artist line below the slides */}
+                        <div className="artist-name-art-center" style={{ marginTop: '1.5rem' }}>
+                            <p className="specialization-badge">
+                                Art by {artist.name}{artist.specialization ? ` · ${artist.specialization}` : ''}
+                            </p>
+                            <div className="name-edit-row">
+                                <h1 className="display-name">{activeArt.title || 'Untitled artwork'}</h1>
                             </div>
                         </div>
+
+                        {/* About this artwork under title with translate control */}
+                        {activeArt.description && (
+                            <div className="content-section" style={{ marginTop: '1.25rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+                                    <h3 className="section-label" style={{ margin: 0 }}>ABOUT THIS ART</h3>
+                                    <div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setArtLangOpen(o => !o)}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.35rem',
+                                                padding: '6px 14px',
+                                                borderRadius: '999px',
+                                                border: '1px solid rgba(148, 163, 184, 0.55)',
+                                                background: 'linear-gradient(135deg, rgba(15,23,42,0.9), rgba(15,23,42,0.6))',
+                                                boxShadow: '0 10px 25px rgba(15,23,42,0.55)',
+                                                color: '#e5e7eb',
+                                                fontSize: '0.75rem',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            <span style={{ fontSize: '1rem' }}>🌐</span>
+                                            <span style={{ letterSpacing: '0.04em', textTransform: 'uppercase' }}>Translate</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p className="bio-text" style={{ marginTop: '0.6rem' }}>
+                                    {artDescriptionTranslated || activeArt.description}
+                                </p>
+                            </div>
+                        )}
+
+                        <div style={{ marginTop: '3rem', textAlign: 'center' }}>
+                            <button
+                                type="button"
+                                onClick={() => window.location.href = window.location.pathname}
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px',
+                                    padding: '14px 28px',
+                                    background: '#111827',
+                                    color: '#ffffff',
+                                    border: 'none',
+                                    borderRadius: '999px',
+                                    fontSize: '0.95rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                    transition: 'transform 0.2s ease, background 0.2s ease',
+                                    fontFamily: 'system-ui, -apple-system, sans-serif'
+                                }}
+                                onMouseOver={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                    e.currentTarget.style.background = '#000000';
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.background = '#111827';
+                                }}
+                            >
+                                👤 Visit Artist Profile
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Fullscreen media preview when an art slide is tapped */}
+                {showPhotoModal && (
+                    <div className="photo-modal-overlay" onClick={() => {
+                        setShowPhotoModal(false);
+                        setSelectedImage(null);
+                    }}>
+                        <div className="artist-preview-card" onClick={e => e.stopPropagation()}>
+                            <div className="artist-preview-card-image-wrap">
+                                {isVideoUrl(selectedImage) ? (
+                                    <video
+                                        src={fixImageUrl(selectedImage)}
+                                        className="artist-preview-card-img"
+                                        autoPlay
+                                        loop
+                                        muted
+                                        playsInline
+                                        controls
+                                    />
+                                ) : (
+                                    <img
+                                        src={fixImageUrl(selectedImage || artist.photo)}
+                                        alt={activeArt.title || artist.name}
+                                        className="artist-preview-card-img"
+                                    />
+                                )}
+                            </div>
+                            <button
+                                type="button"
+                                className="artist-preview-card-close-btn"
+                                onClick={() => { setShowPhotoModal(false); setSelectedImage(null); }}
+                                aria-label="Close"
+                            >
+                                &times;
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    return (
+        <div className={`artist-profile-wrapper theme-${activeTheme}`}>
+            <div
+                className={`artist-profile-card slide-up ${theme.isAnimated ? theme.className : ''}`}
+                style={{
+                    '--font-heading': resolveFontFamily(activeHeadingFont),
+                    '--font-body': resolveFontFamily(activeBodyFont),
+                    background: theme.isAnimated ? undefined : theme.bg,
+                    color: theme.text,
+                    overflow: 'hidden'
+                }}
+            >
+                <div className="profile-header-gradient" style={{ backgroundImage: `url(${fixImageUrl(artist.backgroundPhoto)})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+                    {!artist.backgroundPhoto && <div className="gradient-overlay"></div>}
+                    <div className="profile-photo-container" onClick={(e) => { e.stopPropagation(); setShowPhotoModal(true); }}>
+                        <img src={fixImageUrl(artist.photo)} alt={artist.name} className="profile-photo-circle" />
+                    </div>
+                </div>
+                <div className="profile-info-content">
+                    <div className="artist-name-art-center">
+                        <div className="name-edit-row">
+                            <h1 className="display-name">{artist.name}</h1>
+                        </div>
+                        <p className="specialization-badge">{artist.specialization || "Creative Professional"}</p>
+                    </div>
+
+                    <div className="unified-content-container">
+                        <div className="content-section">
+                            <h3 className="section-label">ABOUT</h3>
+                            <p className="bio-text">
+                                {artist.bio || "No bio provided yet. This artist is currently crafting their story."}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="artist-events-block">
+                        <h3 className="section-label">EVENTS</h3>
+                        <div className="artist-swiper-wrap fade-in" onClick={(e) => e.stopPropagation()}>
+                            {slideGallery.length > 0 ? (
+                                <Swiper
+                                    key={`events-swiper-${slideGallery.length}`}
+                                    onSwiper={(swiper) => {
+                                        eventsSwiperRef.current = swiper;
+                                        const playActiveVideoOnly = () => {
+                                            const activeEl = swiper.slides?.[swiper.activeIndex];
+                                            swiper.slides?.forEach((el) => {
+                                                const video = el?.querySelector('.artist-slide-video');
+                                                if (video) {
+                                                    if (el === activeEl) video.play().catch(() => { });
+                                                    else video.pause();
+                                                }
+                                            });
+                                        };
+                                        setTimeout(playActiveVideoOnly, 300);
+                                    }}
+                                    onSlideChangeTransitionEnd={(swiper) => {
+                                        const activeEl = swiper.slides?.[swiper.activeIndex];
+                                        swiper.slides?.forEach((el) => {
+                                            const video = el?.querySelector('.artist-slide-video');
+                                            if (video) {
+                                                if (el === activeEl) video.play().catch(() => { });
+                                                else video.pause();
+                                            }
+                                        });
+                                    }}
+                                    effect="coverflow"
+                                    grabCursor
+                                    centeredSlides
+                                    slidesPerView="auto"
+                                    spaceBetween={24}
+                                    coverflowEffect={{
+                                        rotate: 0,
+                                        stretch: 20,
+                                        depth: 80,
+                                        modifier: 2.2,
+                                        slideShadows: true
+                                    }}
+                                    loop={slideGallery.length > 1}
+                                    pagination={{ clickable: true }}
+                                    modules={[EffectCoverflow, Pagination]}
+                                    className="artist-swiper"
+                                >
+                                    {slideGallery.map((item, index) => {
+                                        const mediaUrl = typeof item === 'string' ? item : item.url;
+                                        const mediaName = typeof item === 'string' ? 'Untitled' : (item.name || 'Untitled');
+                                        const isVideo = isVideoUrl(mediaUrl);
+                                        const fixedUrl = fixImageUrl(mediaUrl);
+                                        return (
+                                            <SwiperSlide key={index}>
+                                                <div
+                                                    className="artist-swiper-slide"
+                                                    style={!isVideo ? {
+                                                        background: `linear-gradient(to top, #0f2027, #203a4300, #2c536400), url("${fixedUrl}") no-repeat 50% 50% / cover`
+                                                    } : undefined}
+                                                    onClick={(e) => { e.stopPropagation(); setSelectedImage(mediaUrl); setShowPhotoModal(true); }}
+                                                >
+                                                    {isVideo ? (
+                                                        <>
+                                                            <video
+                                                                className="artist-slide-video"
+                                                                src={fixedUrl}
+                                                                muted
+                                                                loop
+                                                                playsInline
+                                                                autoPlay={false}
+                                                                style={{ pointerEvents: 'none' }}
+                                                            />
+                                                            <div className="artist-swiper-slide-overlay" aria-hidden="true" />
+                                                        </>
+                                                    ) : null}
+                                                    <div className="artist-swiper-slide-content">
+                                                        <h2>{mediaName}</h2>
+                                                        <button type="button" className="artist-swiper-explore" onClick={(e) => { e.stopPropagation(); setSelectedImage(mediaUrl); setShowPhotoModal(true); }}>
+                                                            View
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </SwiperSlide>
+                                        );
+                                    })}
+                                </Swiper>
+                            ) : (
+                                <div className="mini-slideshow-placeholder">
+                                    <div className="placeholder-icon">🖼️</div>
+                                    <p className="placeholder-title">No events yet</p>
+                                    <p className="placeholder-desc">Images added from the landing page or by admin will appear here.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Show My Art Button */}
+                    {artist.artLinks && (() => {
+                        const artItems = Array.isArray(artist.artLinks) ? artist.artLinks : Object.values(artist.artLinks);
+                        if (artItems.length === 0) return null;
+                        return (
+                            <div className="show-art-section">
+                                <button className="show-art-btn" onClick={() => setShowArtGallery(true)}>
+                                    <span className="show-art-btn-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                    </span>
+                                    <span>Show My Art</span>
+                                    <span className="show-art-btn-count">{artItems.length}</span>
+                                </button>
+                            </div>
+                        );
+                    })()}
+
+                    {/* Art Gallery Popup */}
+                    {showArtGallery && artist.artLinks && (() => {
+                        const artItems = Array.isArray(artist.artLinks) ? artist.artLinks : Object.values(artist.artLinks);
+                        return (
+                            <div className="art-popup-overlay" onClick={() => { setShowArtGallery(false); setArtGallerySelected(null); }}>
+                                <div className="art-popup-modal" onClick={e => e.stopPropagation()}>
+                                    <div className="art-popup-header">
+                                        <h2>Art Collection</h2>
+                                        <span className="art-popup-count">{artItems.length} pieces</span>
+                                        <button className="art-popup-close" onClick={() => { setShowArtGallery(false); setArtGallerySelected(null); }}>✕</button>
+                                    </div>
+                                    <div className="art-popup-scroll">
+                                        <div className="art-popup-grid">
+                                            {artItems.map((item) => {
+                                                const img = item.images && item.images[0] ? fixImageUrl(item.images[0]) : null;
+                                                return (
+                                                    <div key={item.id} className="art-popup-card" onClick={() => setArtGallerySelected(item)}>
+                                                        {img ? (
+                                                            <img src={img} alt={item.title} className="art-popup-card-img" loading="lazy" />
+                                                        ) : (
+                                                            <div className="art-popup-card-empty">🎨</div>
+                                                        )}
+                                                        <div className="art-popup-card-info">
+                                                            <h4>{item.title || 'Untitled'}</h4>
+                                                            {item.description && <p>{item.description}</p>}
+                                                            <span className="art-popup-card-tag">{item.theme || 'art'}</span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {artGallerySelected && (
+                                    <div className="art-lightbox-overlay" onClick={(e) => { e.stopPropagation(); setArtGallerySelected(null); }}>
+                                        <div className="art-lightbox-modal" onClick={e => e.stopPropagation()}>
+                                            <button className="art-lightbox-close-btn" onClick={() => setArtGallerySelected(null)}>✕</button>
+                                            <div className="art-lightbox-images">
+                                                {(artGallerySelected.images || []).map((imgUrl, i) => (
+                                                    <img key={i} src={fixImageUrl(imgUrl)} alt={`${artGallerySelected.title} ${i + 1}`} className="art-lightbox-image" />
+                                                ))}
+                                            </div>
+                                            <div className="art-lightbox-details">
+                                                <h3>{artGallerySelected.title}</h3>
+                                                {artGallerySelected.description && <p>{artGallerySelected.description}</p>}
+                                                <span className="art-lightbox-tag">{artGallerySelected.theme || 'art'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })()}
+
+                    <div className="social-icon-row">
+                        {artist.instagram && (
+                            <a href={getSocialLink('instagram', artist.instagram)} target="_blank" rel="noopener noreferrer" className="social-icon-btn instagram" onClick={(e) => e.stopPropagation()} aria-label="Instagram">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
+                            </a>
+                        )}
+                        {artist.twitter && (
+                            <a href={getSocialLink('twitter', artist.twitter)} target="_blank" rel="noopener noreferrer" className="social-icon-btn twitter" onClick={(e) => e.stopPropagation()} aria-label="Twitter"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z" /></svg></a>
+                        )}
+                        {artist.website && (
+                            <a href={getSocialLink('website', artist.website)} target="_blank" rel="noopener noreferrer" className="social-icon-btn website" onClick={(e) => e.stopPropagation()} aria-label="Website"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></a>
+                        )}
+                        {artist.linkedin && (
+                            <a href={getSocialLink('linkedin', artist.linkedin)} target="_blank" rel="noopener noreferrer" className="social-icon-btn linkedin" onClick={(e) => e.stopPropagation()} aria-label="LinkedIn"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg></a>
+                        )}
+                        {artist.whatsapp && (
+                            <a href={getSocialLink('whatsapp', artist.whatsapp)} target="_blank" rel="noopener noreferrer" className="social-icon-btn whatsapp" onClick={(e) => e.stopPropagation()} aria-label="WhatsApp"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338-11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.438 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.371-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" /></svg></a>
+                        )}
+                    </div>
+
+                    <div className="content-section">
+                        <h3 className="section-label">GET IN TOUCH</h3>
+                        <div className="contact-list-minimal">
+                            {artist.email && (
+                                <a href={`mailto:${artist.email}`} className="contact-item-minimal" onClick={(e) => e.stopPropagation()}>
+                                    <div className="contact-icon">📧</div>
+                                    <div className="contact-text">{artist.email}</div>
+                                </a>
+                            )}
+                            {artist.phone && (
+                                <a href={`tel:${artist.phone}`} className="contact-item-minimal" onClick={(e) => e.stopPropagation()}>
+                                    <div className="contact-icon">📱</div>
+                                    <div className="contact-text">{artist.phone}</div>
+                                </a>
+                            )}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
 
             {/* Profile preview card (card-style UI, not zoom) */}
             {showPhotoModal && (

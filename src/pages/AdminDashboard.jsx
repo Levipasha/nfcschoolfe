@@ -142,18 +142,37 @@ const AdminDashboard = () => {
         }
     };
 
-    const copyNFCUrl = (student) => {
-        const url = `${window.location.origin}/student?id=${student.studentId}`;
+    const handleQuickCreateArtist = async () => {
+        try {
+            setLoading(true);
+            const res = await artistAPI.quickCreateArtist();
+            if (res.data?.success) {
+                const newArtist = res.data.data;
+                const url = `${window.location.origin}/artist?id=${newArtist.artistId}`;
+                navigator.clipboard.writeText(url);
+                alert(`New artist record created!\nID: ${newArtist.artistId}\nNFC URL: ${url}\n\nURL copied to clipboard!`);
+                fetchArtists();
+            }
+        } catch (e) {
+            console.error('Error creating artist:', e);
+            alert('Failed to create artist record.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const copyArtistNFCUrl = (artist) => {
+        const url = `${window.location.origin}/artist?id=${artist.artistId}`;
         navigator.clipboard.writeText(url);
         alert('NFC URL copied to clipboard!');
     };
 
-    const viewStudentProfile = (student) => {
-        const url = `/student?id=${student.studentId}`;
+    const viewArtistProfile = (artist) => {
+        const url = `/artist?id=${artist.artistId}`;
         window.open(url, '_blank');
     };
 
-    if (loading && !schools.length) {
+    if (loading && !schools.length && activeTab === 'schools') {
         return <LoadingSpinner message="Loading dashboard..." />;
     }
 
@@ -308,12 +327,25 @@ const AdminDashboard = () => {
                                     className="search-input"
                                 />
                             </div>
+                            <div className="section-actions">
+                                <button
+                                    onClick={handleQuickCreateArtist}
+                                    className="btn btn-primary"
+                                    title="Generate a blank artist record"
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><path d="M12 5v14M5 12h14" /></svg>
+                                    Quick Create Artist
+                                </button>
+                            </div>
                         </div>
                         <div className="schools-grid-dashboard artist-cards-grid">
                             {Array.isArray(artists) && artists.map((artist) => (
                                 <div key={artist._id} className="school-card-dashboard artist-card-dashboard">
                                     <div className="school-card-body">
-                                        <h3 className="school-name-text">{artist.name || 'Unnamed'}</h3>
+                                        <div className="profile-badge-row">
+                                            <h3 className="school-name-text">{artist.name || 'Uninitialized Profile'}</h3>
+                                            {artist.isSetup ? <span className="status-badge live">Live</span> : <span className="status-badge pending">Pending Setup</span>}
+                                        </div>
                                         <div className="school-stats-row">
                                             <div className="mini-stat">
                                                 <span className="mini-stat-value">{artist.artistId || artist.code || '—'}</span>
@@ -324,6 +356,19 @@ const AdminDashboard = () => {
                                                 <span className="mini-stat-label">Scans</span>
                                             </div>
                                         </div>
+                                        <div className="artist-meta-info">
+                                            {artist.email && <p className="artist-email-sub">{artist.email}</p>}
+                                        </div>
+                                    </div>
+                                    <div className="card-footer artist-card-footer">
+                                        <button className="action-link-btn" onClick={() => copyArtistNFCUrl(artist)}>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                                            Copy NFC Link
+                                        </button>
+                                        <button className="action-link-btn" onClick={() => viewArtistProfile(artist)}>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
+                                            Preview
+                                        </button>
                                     </div>
                                 </div>
                             ))}
@@ -331,7 +376,7 @@ const AdminDashboard = () => {
                                 <div className="empty-state">
                                     <div className="empty-icon">🎨</div>
                                     <h3>No artists found</h3>
-                                    <p>Artists will appear here when they are created.</p>
+                                    <p>Click "Quick Create Artist" to generate a new blank profile for an NFC tag.</p>
                                 </div>
                             )}
                         </div>

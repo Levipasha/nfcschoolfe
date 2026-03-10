@@ -421,3 +421,12 @@ p {
   background: rgba(102, 126, 234, 0.2);
   color: var(--text-primary);
 }
+/* --- Hide scrollbars globally --- */
+::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+}
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}

@@ -24,6 +24,14 @@ const PanelSwitcher = ({ currentPanel }) => {
             icon: '🎨',
             path: '/artist/dashboard',
             active: currentPanel === 'artist'
+        },
+        {
+            id: 'general',
+            name: 'General Profiles',
+            subtitle: 'Link-in-Bio Management',
+            icon: '👤',
+            path: '/general/dashboard',
+            active: currentPanel === 'general'
         }
     ];
 
@@ -44,7 +52,11 @@ const PanelSwitcher = ({ currentPanel }) => {
 
     const handleLogout = () => {
         localStorage.removeItem('adminToken');
-        navigate(currentPanel === 'school' ? '/admin/login' : '/artist/login');
+        if (currentPanel === 'artist') {
+            navigate('/artist/login');
+        } else {
+            navigate('/admin/login');
+        }
     };
 
     const activePanel = panels.find(p => p.active);

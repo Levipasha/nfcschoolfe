@@ -588,14 +588,17 @@
 .dashboard-tabs-section {
     margin-bottom: var(--spacing-lg);
 }
+
 .dashboard-tabs-section .container {
     padding: 0;
 }
+
 .dashboard-tabs {
     display: flex;
     gap: 0;
     border-bottom: 2px solid #eeeeee;
 }
+
 .tab-btn {
     padding: 12px 24px;
     font-size: 1rem;
@@ -610,9 +613,11 @@
     cursor: pointer;
     transition: all 0.2s ease;
 }
+
 .tab-btn:hover {
     color: #000;
 }
+
 .tab-btn.active {
     color: #000;
     border-bottom-color: #000;
@@ -622,11 +627,13 @@
 .artists-section .section-header {
     margin-bottom: var(--spacing-lg);
 }
+
 .artist-card-dashboard .card-footer {
     display: flex;
     align-items: center;
     justify-content: flex-end;
 }
+
 .btn-edit-badges {
     padding: 8px 16px;
     font-size: 0.85rem;
@@ -640,6 +647,7 @@
     cursor: pointer;
     transition: all 0.2s ease;
 }
+
 .btn-edit-badges:hover {
     background: #333;
     transform: translateY(-1px);
@@ -656,6 +664,7 @@
     z-index: 10001;
     padding: 20px;
 }
+
 .badge-modal-content {
     background: #ffffff;
     border-radius: 12px;
@@ -667,6 +676,7 @@
     position: relative;
     z-index: 1;
 }
+
 .badge-modal-title {
     margin: 0 0 8px;
     font-size: 1.25rem;
@@ -675,29 +685,34 @@
     letter-spacing: 0.02em;
     color: #111;
 }
+
 .badge-modal-hint {
     margin: 0 0 20px;
     font-size: 0.85rem;
     color: #444;
     line-height: 1.4;
 }
+
 .badge-form-grid {
     display: flex;
     flex-direction: column;
     gap: 12px;
     margin-bottom: 24px;
 }
+
 .badge-form-row {
     display: grid;
     grid-template-columns: 1fr 80px;
     align-items: center;
     gap: 12px;
 }
+
 .badge-form-row label {
     font-size: 0.9rem;
     font-weight: 600;
     color: #222;
 }
+
 .badge-form-row input {
     padding: 8px 12px;
     font-size: 1rem;
@@ -706,15 +721,18 @@
     background: #fff;
     color: #111;
 }
+
 .badge-form-row input:focus {
     outline: none;
     border-color: #000;
 }
+
 .badge-modal-actions {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
 }
+
 .badge-modal-btn {
     padding: 10px 20px;
     font-weight: 700;
@@ -723,21 +741,103 @@
     border-radius: 8px;
     cursor: pointer;
 }
+
 .badge-modal-btn-cancel {
     background: #fff;
     color: #000;
     border: 2px solid #000;
 }
+
 .badge-modal-btn-cancel:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
+
 .badge-modal-btn-save {
     background: #000;
     color: #fff;
     border: 2px solid #000;
 }
+
 .badge-modal-btn-save:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+/* Artist specific card styles */
+.profile-badge-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.status-badge {
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+}
+
+.status-badge.live {
+    background: #e6fffa;
+    color: #047857;
+    border: 1px solid #047857;
+}
+
+.status-badge.pending {
+    background: #fffbef;
+    color: #b45309;
+    border: 1px solid #b45309;
+}
+
+.artist-meta-info {
+    margin-top: 8px;
+}
+
+.artist-email-sub {
+    font-size: 0.8rem;
+    color: #666;
+    margin: 0;
+}
+
+.artist-card-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    background: #f9f9f9;
+    margin: 12px -1.5rem -1.5rem;
+    padding: 12px 1.5rem;
+    border-top: 1px solid #eee;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+.action-link-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    background: white;
+    border: 1.5px solid #000;
+    border-radius: 6px;
+    color: #000;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-link-btn:hover {
+    background: #000;
+    color: #fff;
+}
+
+.action-link-btn svg {
+    flex-shrink: 0;
 }

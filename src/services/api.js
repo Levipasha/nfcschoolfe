@@ -109,6 +109,22 @@ export const schoolAPI = {
     getSchoolStudents: (id) => api.get(`/api/school/${id}/students`)
 };
 
+export const generalProfileAPI = {
+    getProfiles: (params) => api.get('/api/admin/general-profiles', { params }),
+    getProfile: (id) => api.get(`/api/admin/general-profiles/${id}`),
+    createProfile: (data) => api.post('/api/admin/general-profiles', data),
+    updateProfile: (id, data) => api.put(`/api/admin/general-profiles/${id}`, data),
+    deleteProfile: (id) => api.delete(`/api/admin/general-profiles/${id}`),
+    getStats: () => api.get('/api/admin/general-profiles/stats'),
+    uploadPhoto: (file) => {
+        const formData = new FormData();
+        formData.append('photo', file);
+        return api.post('/api/artist/upload-photo', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    }
+};
+
 export const artistAPI = {
     getArtists: () => api.get('/api/artist'),
     getArtist: (id) => api.get(`/api/artist/${id}`),
