@@ -30,6 +30,7 @@ function App() {
 
                 {/* General Profile Routes */}
                 <Route path="/general/dashboard" element={<GeneralProfileDashboard />} />
+                <Route path="/restaurant/dashboard" element={<GeneralProfileDashboard profileType="restaurant" />} />
 
                 {/* Admin Routes */}
                 <Route path="/admin/login" element={<AdminLogin />} />

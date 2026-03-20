@@ -8,9 +8,36 @@ import './StudentProfile.css';
 const StudentProfile = ({ studentData }) => {
     const [searchParams] = useSearchParams();
     const studentId = searchParams.get('id');
+    const isMock = searchParams.get('mock') === '1';
 
-    const [student, setStudent] = useState(studentData || null);
-    const [loading, setLoading] = useState(studentData ? false : true);
+    // Mock data for "Example Profile" pages (no DB/API calls).
+    const MOCK_STUDENT = {
+        studentId: 'mock-student',
+        name: 'Aarav Mehta',
+        nickname: 'Aarav',
+        rollNumber: '20246001',
+        class: 'Computer Science • Class of 2026',
+        age: '18',
+        bloodGroup: 'O+',
+        photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=600&fit=crop',
+        emergencyContact: '+91 9876543210',
+        fatherName: 'Ravi Mehta',
+        motherName: 'Neha Mehta',
+        fatherPhone: '+91 9000000001',
+        motherPhone: '+91 9000000002',
+        address: 'Campus Road, Block A, City',
+        school: {
+            name: 'National Institute of Technology',
+            code: 'NIT-2026',
+            address: 'Campus Road, City',
+            phone: '+91 9000000000'
+        },
+        scanCount: 42,
+        lastScanned: null
+    };
+
+    const [student, setStudent] = useState(isMock ? MOCK_STUDENT : (studentData || null));
+    const [loading, setLoading] = useState(studentData ? false : !isMock);
     const [error, setError] = useState(null);
     const [imageModalOpen, setImageModalOpen] = useState(false);
     const [isFlipped, setIsFlipped] = useState(false);
@@ -60,6 +87,12 @@ const StudentProfile = ({ studentData }) => {
     useEffect(() => {
         const fetchStudent = async () => {
             if (studentData) return;
+            if (isMock) {
+                setStudent(MOCK_STUDENT);
+                setError(null);
+                setLoading(false);
+                return;
+            }
             if (!studentId) {
                 setError('No student ID provided');
                 setLoading(false);
@@ -95,7 +128,7 @@ const StudentProfile = ({ studentData }) => {
         };
 
         fetchStudent();
-    }, [studentId]);
+    }, [studentId, isMock]);
 
     if (loading) {
         return (

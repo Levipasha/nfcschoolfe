@@ -116,6 +116,13 @@ export const generalProfileAPI = {
     updateProfile: (id, data) => api.put(`/api/admin/general-profiles/${id}`, data),
     deleteProfile: (id) => api.delete(`/api/admin/general-profiles/${id}`),
     getStats: () => api.get('/api/admin/general-profiles/stats'),
+    uploadMenuPdf: (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return api.post('/api/admin/general-profiles/upload-pdf', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    },
     uploadPhoto: (file) => {
         const formData = new FormData();
         formData.append('photo', file);

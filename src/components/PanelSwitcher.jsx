@@ -32,6 +32,14 @@ const PanelSwitcher = ({ currentPanel }) => {
             icon: '👤',
             path: '/general/dashboard',
             active: currentPanel === 'general'
+        },
+        {
+            id: 'restaurant',
+            name: 'Restaurant Profiles',
+            subtitle: 'Menu & Restaurant Profiles',
+            icon: '🍽️',
+            path: '/restaurant/dashboard',
+            active: currentPanel === 'restaurant'
         }
     ];
 

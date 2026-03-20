@@ -1,0 +1,187 @@
+.photo-modal,
+.photo-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.photo-modal-content {
+    position: relative;
+    max-width: 100%;
+    max-height: 100%;
+    width: fit-content;
+    height: fit-content;
+}
+
+.photo-modal-content img,
+.modal-full-photo {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 12px;
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+/* Artist profile preview card (card-style UI, not zoom) */
+.artist-preview-card {
+    position: relative;
+    width: 100%;
+    max-width: 380px;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+    background: #fff;
+}
+
+.artist-preview-card-image-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    max-height: 70vh;
+    overflow: hidden;
+}
+
+.artist-preview-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+}
+
+.artist-preview-card-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 28px 24px 24px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.4) 50%, transparent);
+    color: #fff;
+}
+
+.artist-preview-card-name {
+    margin: 0 0 6px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-family: 'Playfair Display', 'Times New Roman', serif;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -0.02em;
+}
+
+.artist-preview-card-verified {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #22c55e;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.artist-preview-card-bio {
+    margin: 0 0 16px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    opacity: 0.95;
+    line-height: 1.4;
+}
+
+.artist-preview-card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.artist-preview-card-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.artist-preview-card-stat svg {
+    flex-shrink: 0;
+    opacity: 0.9;
+}
+
+.artist-preview-card-close {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 100px;
+    background: #000;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.artist-preview-card-close:hover {
+    background: #333;
+    transform: translateY(-1px);
+}
+
+.artist-preview-card-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    transition: background 0.2s;
+}
+
+.artist-preview-card-close-btn:hover {
+    background: rgba(0, 0, 0, 0.75);
+}
+

@@ -1,0 +1,305 @@
+﻿/* Animated Themes Additions */
+.theme-anim-aurora {
+    background: linear-gradient(-45deg, #0f172a, #111827, #1e1b4b, #312e81) !important;
+    background-size: 400% 400% !important;
+    animation: aurora-flow 15s ease infinite !important;
+}
+
+@keyframes aurora-flow {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.theme-anim-galaxy {
+    background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #000 100%) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-anim-galaxy::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    right: -50%;
+    bottom: -50%;
+    background: transparent;
+    background-image: radial-gradient(#fff 1px, transparent 1px), radial-gradient(#fff 1px, transparent 1px);
+    background-size: 50px 50px;
+    background-position: 0 0, 25px 25px;
+    animation: galaxy-spin 60s linear infinite;
+    opacity: 0.2;
+    z-index: 0;
+    pointer-events: none;
+}
+
+@keyframes galaxy-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.theme-anim-glass {
+    background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%) !important;
+    background-size: 200% 200% !important;
+    animation: glass-flow 10s ease infinite !important;
+}
+
+@keyframes glass-flow {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.theme-anim-cyber {
+    background: linear-gradient(135deg, #09090b 0%, #18181b 100%) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-anim-cyber::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+    background-size: 30px 30px;
+    animation: cyber-grid 20s linear infinite;
+    z-index: 0;
+    pointer-events: none;
+}
+
+@keyframes cyber-grid {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 30px 30px;
+    }
+}
+
+/* Dynamic Typography Variables */
+.artist-profile-wrapper,
+.artist-profile-wrapper * {
+    font-family: var(--font-body, "Outfit", sans-serif) !important;
+}
+
+.artist-profile-wrapper h1,
+.artist-profile-wrapper h2,
+.artist-profile-wrapper h3,
+.artist-profile-wrapper h4,
+.artist-profile-wrapper h5,
+.artist-profile-wrapper h6,
+.artist-profile-wrapper .display-name,
+.artist-profile-wrapper .section-label,
+.artist-profile-wrapper .specialization-badge,
+.artist-profile-wrapper h1 *,
+.artist-profile-wrapper h2 *,
+.artist-profile-wrapper h3 *,
+.artist-profile-wrapper h4 *,
+.artist-profile-wrapper h5 *,
+.artist-profile-wrapper h6 *,
+.artist-profile-wrapper .display-name *,
+.artist-profile-wrapper .section-label *,
+.artist-profile-wrapper .specialization-badge * {
+    font-family: var(--font-heading, "Outfit", sans-serif) !important;
+}
+
+/* â•â•â•â•â•â•â•â•â•â•â• Show My Art â€“ Public Profile â•â•â•â•â•â•â•â•â•â•â• */
+.show-art-section {
+    margin: 8px 0;
+}
+
+.show-art-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 14px 1.5rem;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 16px;
+    background: transparent;
+    color: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-family: var(--font-heading, 'Outfit', sans-serif);
+}
+
+.show-art-btn:hover {
+    transform: translateY(-2px);
+}
+
+.show-art-btn:active {
+    transform: translateY(0);
+}
+
+.show-art-btn-icon {
+    display: flex;
+    align-items: center;
+    opacity: 0.7;
+}
+
+.show-art-btn-count {
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+/* â”€â”€ Mono: subtle glass on dark â”€â”€ */
+.theme-mono .show-art-btn {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.1);
+    color: #e5e7eb;
+}
+.theme-mono .show-art-btn:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.2);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+.theme-mono .show-art-btn-count {
+    background: rgba(255,255,255,0.1);
+    color: #e5e7eb;
+}
+
+/* â”€â”€ Classic: dark pill on white card â”€â”€ */
+.theme-classic .show-art-btn {
+    background: #111827;
+    border-color: #111827;
+    color: #f9fafb;
+}
+.theme-classic .show-art-btn:hover {
+    background: #1f2937;
+    box-shadow: 0 6px 20px rgba(17,24,39,0.3);
+}
+.theme-classic .show-art-btn-count {
+    background: rgba(255,255,255,0.15);
+    color: #f9fafb;
+}
+
+/* â”€â”€ Neon: cyan bordered glow â”€â”€ */
+.theme-neon .show-art-btn {
+    background: rgba(34,211,238,0.08);
+    border-color: rgba(34,211,238,0.35);
+    color: #e0f2fe;
+}
+.theme-neon .show-art-btn:hover {
+    background: rgba(34,211,238,0.15);
+    border-color: #22d3ee;
+    box-shadow: 0 0 24px rgba(34,211,238,0.25);
+}
+.theme-neon .show-art-btn-count {
+    background: rgba(34,211,238,0.15);
+    color: #22d3ee;
+}
+.theme-neon .show-art-btn-icon {
+    color: #22d3ee;
+    opacity: 1;
+}
+
+/* â”€â”€ Art: red bordered â”€â”€ */
+.theme-art .show-art-btn {
+    background: rgba(220,38,38,0.08);
+    border-color: rgba(153,27,27,0.5);
+    color: #fecaca;
+}
+.theme-art .show-art-btn:hover {
+    background: rgba(220,38,38,0.15);
+    border-color: #dc2626;
+    box-shadow: 0 0 24px rgba(220,38,38,0.25);
+}
+.theme-art .show-art-btn-count {
+    background: rgba(220,38,38,0.15);
+    color: #f87171;
+}
+.theme-art .show-art-btn-icon {
+    color: #f87171;
+    opacity: 1;
+}
+
+/* â•â•â•â•â•â•â•â•â•â•â• Art Lightbox â•â•â•â•â•â•â•â•â•â•â• */
+.art-lightbox-images {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0 0.8rem;
+    margin-top: -1.2rem;
+}
+
+.art-lightbox-image {
+    width: 100%;
+    border-radius: 10px;
+    display: block;
+    object-fit: contain;
+    max-height: 450px;
+}
+
+.art-lightbox-details {
+    padding: 1rem 1.2rem 1.25rem;
+}
+
+.art-lightbox-details h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    font-family: var(--font-heading, 'Outfit', sans-serif);
+}
+
+.art-lightbox-details p {
+    margin: 0.4rem 0 0;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.6;
+}
+
+.art-lightbox-tag {
+    display: inline-block;
+    margin-top: 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #a78bfa;
+    background: rgba(139,92,246,0.12);
+    padding: 3px 10px;
+    border-radius: 8px;
+    text-transform: capitalize;
+}
+
+@media (max-width: 480px) {
+    .art-popup-grid { columns: 1; }
+    .art-popup-overlay { padding: 0.5rem; }
+    .art-lightbox-overlay { padding: 0.75rem; }
+    .show-art-section { padding: 1rem 1rem 0; }
+}

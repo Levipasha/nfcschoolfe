@@ -1,0 +1,286 @@
+/* ═══════════ Art Popup Gallery ═══════════ */
+.art-popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    backdrop-filter: blur(16px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: artFadeIn 0.25s ease;
+}
+
+@keyframes artFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.art-popup-modal {
+    background: #111827;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 22px;
+    width: 100%;
+    max-width: 560px;
+    max-height: 82vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+    animation: artSlideUp 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+
+@keyframes artSlideUp {
+    from { opacity: 0; transform: scale(0.93) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.art-popup-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1.1rem 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.art-popup-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    flex: 1;
+    font-family: var(--font-heading, 'Outfit', sans-serif);
+}
+
+.art-popup-count {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.06);
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.art-popup-close {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.art-popup-close:hover {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+}
+
+.art-popup-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139,92,246,0.2) transparent;
+}
+
+.art-popup-scroll::-webkit-scrollbar { width: 4px; }
+.art-popup-scroll::-webkit-scrollbar-thumb {
+    background: rgba(139,92,246,0.2);
+    border-radius: 10px;
+}
+
+.art-popup-grid {
+    columns: 2;
+    column-gap: 0.75rem;
+}
+
+.art-popup-card {
+    break-inside: avoid;
+    margin-bottom: 0.75rem;
+    border-radius: 14px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+.art-popup-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(139,92,246,0.3);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.3), 0 0 0 1px rgba(139,92,246,0.12);
+}
+
+.art-popup-card-img {
+    width: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.art-popup-card-empty {
+    width: 100%;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(99,102,241,0.08));
+}
+
+.art-popup-card-info {
+    padding: 0.6rem 0.8rem;
+}
+
+.art-popup-card-info h4 {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.3;
+    font-family: var(--font-heading, 'Outfit', sans-serif);
+}
+
+.art-popup-card-info p {
+    margin: 0.25rem 0 0;
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.4);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.art-popup-card-tag {
+    display: inline-block;
+    margin-top: 0.35rem;
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: #a78bfa;
+    background: rgba(139,92,246,0.1);
+    padding: 2px 7px;
+    border-radius: 6px;
+    text-transform: capitalize;
+}
+
+/* ═══════════ Art Lightbox ═══════════ */
+.art-lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    backdrop-filter: blur(20px);
+    z-index: 110;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    animation: artFadeIn 0.2s ease;
+}
+
+.art-lightbox-modal {
+    background: #0f172a;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    animation: artSlideUp 0.3s cubic-bezier(0.16,1,0.3,1);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139,92,246,0.2) transparent;
+}
+
+.art-lightbox-modal::-webkit-scrollbar { width: 4px; }
+.art-lightbox-modal::-webkit-scrollbar-thumb {
+    background: rgba(139,92,246,0.2);
+    border-radius: 10px;
+}
+
+.art-lightbox-close-btn {
+    position: sticky;
+    top: 0.6rem;
+    align-self: flex-end;
+    margin: 0.6rem 0.6rem 0 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.95rem;
+    z-index: 10;
+    transition: all 0.2s;
+}
+
+.art-lightbox-close-btn:hover {
+    background: rgba(239,68,68,0.4);
+    transform: scale(1.1);
+}
+
+.art-lightbox-images {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0 0.8rem;
+    margin-top: -1.2rem;
+}
+
+.art-lightbox-image {
+    width: 100%;
+    border-radius: 10px;
+    display: block;
+    object-fit: contain;
+    max-height: 450px;
+}
+
+.art-lightbox-details {
+    padding: 1rem 1.2rem 1.25rem;
+}
+
+.art-lightbox-details h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    font-family: var(--font-heading, 'Outfit', sans-serif);
+}
+
+.art-lightbox-details p {
+    margin: 0.4rem 0 0;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.6;
+}
+
+.art-lightbox-tag {
+    display: inline-block;
+    margin-top: 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #a78bfa;
+    background: rgba(139,92,246,0.12);
+    padding: 3px 10px;
+    border-radius: 8px;
+    text-transform: capitalize;
+}
+
+@media (max-width: 480px) {
+    .art-popup-grid { columns: 1; }
+    .art-popup-overlay { padding: 0.5rem; }
+    .art-lightbox-overlay { padding: 0.75rem; }
+    .show-art-section { padding: 1rem 1rem 0; }
+}
+

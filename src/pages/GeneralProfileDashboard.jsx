@@ -22,6 +22,7 @@ const emptyForm = {
     title: '',
     bio: '',
     photo: '',
+    menuPdf: '',
     theme: 'mint',
     font: 'outfit',
     bioFont: 'outfit',
@@ -29,7 +30,13 @@ const emptyForm = {
     social: {}
 };
 
-const GeneralProfileDashboard = () => {
+const isRestaurantProfile = (profile = {}) => {
+    if (profile.profileType) return profile.profileType === 'restaurant';
+    // Legacy fallback: infer restaurant only if menuPdf exists.
+    return !!(profile.menuPdf && String(profile.menuPdf).trim());
+};
+
+const GeneralProfileDashboard = ({ profileType = 'general' }) => {
     const navigate = useNavigate();
     const [profiles, setProfiles] = useState([]);
     const [stats, setStats] = useState({ totalProfiles: 0 });
@@ -38,6 +45,8 @@ const GeneralProfileDashboard = () => {
     const [editingProfile, setEditingProfile] = useState(null);
     const [photoFile, setPhotoFile] = useState(null);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
+    const [menuPdfFile, setMenuPdfFile] = useState(null);
+    const [uploadingMenuPdf, setUploadingMenuPdf] = useState(false);
     const [formData, setFormData] = useState({ ...emptyForm });
     const [newLinkTitle, setNewLinkTitle] = useState('');
     const [newLinkUrl, setNewLinkUrl] = useState('');
@@ -51,9 +60,14 @@ const GeneralProfileDashboard = () => {
 
     const fetchProfiles = async (search = '') => {
         try {
-            const response = await generalProfileAPI.getProfiles({ search });
+            const response = await generalProfileAPI.getProfiles({ search, type: profileType });
             if (response.data.success) {
-                setProfiles(response.data.data);
+                const all = response.data.data || [];
+                const filtered = all.filter((p) => {
+                    const isRestaurant = isRestaurantProfile(p);
+                    return profileType === 'restaurant' ? isRestaurant : !isRestaurant;
+                });
+                setProfiles(filtered);
             }
         } catch (error) {
             console.error('Error fetching profiles:', error);
@@ -87,6 +101,12 @@ const GeneralProfileDashboard = () => {
         }
     };
 
+    const handleMenuPdfChange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+            setMenuPdfFile(e.target.files[0]);
+        }
+    };
+
     const addLink = () => {
         if (!newLinkUrl.trim()) return;
         const newLink = {
@@ -113,6 +133,7 @@ const GeneralProfileDashboard = () => {
 
         try {
             let finalPhoto = formData.photo;
+            let finalMenuPdf = formData.menuPdf;
 
             if (photoFile) {
                 setUploadingPhoto(true);
@@ -123,7 +144,17 @@ const GeneralProfileDashboard = () => {
                 setUploadingPhoto(false);
             }
 
-            const submissionData = { ...formData, photo: finalPhoto };
+            if (menuPdfFile) {
+                setUploadingMenuPdf(true);
+                const uploadRes = await generalProfileAPI.uploadMenuPdf(menuPdfFile);
+                if (uploadRes.data.success) {
+                    finalMenuPdf = uploadRes.data.url;
+                }
+                setUploadingMenuPdf(false);
+            }
+
+            const submissionData = { ...formData, photo: finalPhoto, menuPdf: finalMenuPdf };
+            submissionData.profileType = profileType;
 
             const response = editingProfile
                 ? await generalProfileAPI.updateProfile(editingProfile._id, submissionData)
@@ -144,6 +175,7 @@ const GeneralProfileDashboard = () => {
             alert(error.response?.data?.message || 'Error saving profile');
         } finally {
             setUploadingPhoto(false);
+            setUploadingMenuPdf(false);
         }
     };
 
@@ -155,6 +187,7 @@ const GeneralProfileDashboard = () => {
             title: profile.title || '',
             bio: profile.bio || '',
             photo: profile.photo || '',
+            menuPdf: profile.menuPdf || '',
             theme: profile.theme || 'mint',
             font: profile.font || 'outfit',
             bioFont: profile.bioFont || 'outfit',
@@ -162,6 +195,7 @@ const GeneralProfileDashboard = () => {
             social: profile.social || {}
         });
         setPhotoFile(null);
+        setMenuPdfFile(null);
         setShowAddModal(true);
     };
 
@@ -184,6 +218,7 @@ const GeneralProfileDashboard = () => {
     const resetForm = () => {
         setFormData({ ...emptyForm });
         setPhotoFile(null);
+        setMenuPdfFile(null);
         setNewLinkTitle('');
         setNewLinkUrl('');
         setNewLinkPlatform('');
@@ -199,6 +234,9 @@ const GeneralProfileDashboard = () => {
         const t = GENERAL_THEMES.find(th => th.id === themeId);
         return t ? { background: t.bg, color: t.text } : {};
     };
+    const restaurantCount = profiles.filter(isRestaurantProfile).length;
+    const dashboardTitle = profileType === 'restaurant' ? 'Restaurant Profiles' : 'General Profiles';
+    const dashboardSubtitle = profileType === 'restaurant' ? 'Restaurant Profile Management' : 'Link-in-Bio Management Hub';
 
     if (loading && profiles.length === 0) {
         return <div className="loading">Loading...</div>;
@@ -210,10 +248,10 @@ const GeneralProfileDashboard = () => {
                 <div className="container">
                     <div className="header-content">
                         <div className="header-left">
-                            <h1 className="dashboard-title">General Profiles</h1>
-                            <p className="dashboard-subtitle">Link-in-Bio Management Hub</p>
+                            <h1 className="dashboard-title">{dashboardTitle}</h1>
+                            <p className="dashboard-subtitle">{dashboardSubtitle}</p>
                         </div>
-                        <PanelSwitcher currentPanel="general" />
+                        <PanelSwitcher currentPanel={profileType === 'restaurant' ? 'restaurant' : 'general'} />
                     </div>
                 </div>
             </header>
@@ -234,6 +272,15 @@ const GeneralProfileDashboard = () => {
                             <p className="stat-number">{GENERAL_THEMES.length}</p>
                         </div>
                     </div>
+                    {profileType !== 'restaurant' && (
+                        <div className="stat-card">
+                            <div className="stat-icon">🍽️</div>
+                            <div className="stat-info">
+                                <h3>Restaurant Profiles</h3>
+                                <p className="stat-number">{restaurantCount}</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="actions-bar">
@@ -275,6 +322,11 @@ const GeneralProfileDashboard = () => {
                             <div className="profile-info">
                                 <h3>{profile.name || 'Unnamed'}</h3>
                                 <p className="profile-username">@{profile.username}</p>
+                                <div className="profile-type-row">
+                                    <span className={`profile-type-badge ${profileType === 'restaurant' ? 'restaurant' : 'general'}`}>
+                                        {profileType === 'restaurant' ? 'Restaurant' : 'General'}
+                                    </span>
+                                </div>
                                 {profile.title && <p className="profile-title">{profile.title}</p>}
                                 {profile.bio && <p className="profile-bio">{profile.bio}</p>}
                                 <div className="profile-meta">
@@ -307,7 +359,7 @@ const GeneralProfileDashboard = () => {
                     ))}
                     {profiles.length === 0 && !loading && (
                         <div className="empty-state">
-                            <p>No general profiles found. Create one to get started!</p>
+                            <p>{profileType === 'restaurant' ? 'No restaurant profiles found.' : 'No general profiles found. Create one to get started!'}</p>
                         </div>
                     )}
                 </div>
@@ -433,6 +485,33 @@ const GeneralProfileDashboard = () => {
                                     )}
                                     {uploadingPhoto && <div className="loading-small">Uploading...</div>}
                                 </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Restaurant Menu (PDF)</label>
+                                <p className="field-hint">Optional — upload a PDF, it will show as “See my menu” on the public card</p>
+                                <div className="file-input-container">
+                                    <input
+                                        type="file"
+                                        accept="application/pdf"
+                                        onChange={handleMenuPdfChange}
+                                        className="file-input-field"
+                                    />
+                                    {(menuPdfFile || formData.menuPdf) && (
+                                        <div className="photo-preview-mini">
+                                            <span>Current: {menuPdfFile ? menuPdfFile.name : 'Existing PDF'}</span>
+                                        </div>
+                                    )}
+                                    {uploadingMenuPdf && <div className="loading-small">Uploading...</div>}
+                                </div>
+                                <input
+                                    type="url"
+                                    name="menuPdf"
+                                    value={formData.menuPdf}
+                                    onChange={handleInputChange}
+                                    placeholder="Or paste PDF URL here"
+                                    style={{ marginTop: 10 }}
+                                />
                             </div>
 
                             <div className="form-group links-section">
