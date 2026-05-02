@@ -259,7 +259,7 @@ function App() {
   }
 
   function profileBaseUrlFromEnv() {
-    const u = import.meta.env.VITE_PUBLIC_PROFILE_URL || import.meta.env.VITE_FRONTEND_URL || "";
+    const u = import.meta.env.VITE_PUBLIC_PROFILE_URL || import.meta.env.VITE_FRONTEND_URL || "https://nanoprofiles.com";
     return String(u).replace(/\/$/, "");
   }
 
