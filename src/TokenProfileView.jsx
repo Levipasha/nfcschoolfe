@@ -579,9 +579,6 @@ function ArtistProfileCard({ profile }) {
             <div className="nfc-p-avatar-text">
               {profile.name && <h1 className="nfc-p-name">{profile.name}</h1>}
               {profile.specialization ? <p className="nfc-p-subtitle">{profile.specialization}</p> : null}
-              <p className="nfc-p-meta" style={{ marginTop: "0.75rem" }}>
-                ID: {profile.code || "—"}
-              </p>
             </div>
           </div>
 

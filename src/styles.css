@@ -539,3 +539,55 @@ td {
     grid-template-columns: 1fr;
   }
 }
+
+.adminFormsColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.btnPrimary {
+  background: #111827;
+  color: #fff;
+  font-weight: 600;
+}
+
+.fieldErrorMsg {
+  color: #dc2626;
+  font-size: 13px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.suggestionsBox {
+  margin-top: 4px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.suggestionsBox span {
+  color: #6b7280;
+}
+
+.suggestionBtn {
+  width: auto !important;
+  margin-top: 0 !important;
+  padding: 4px 10px !important;
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+  border: 1px solid #d1d5db !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  border-radius: 6px !important;
+}
+
+.suggestionBtn:hover {
+  background: #e5e7eb !important;
+  border-color: #9ca3af !important;
+}
+

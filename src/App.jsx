@@ -15,11 +15,33 @@ const initialEdit = {
 
 const initialArtistEdit = {
   _id: "",
+  artistId: "",
+  name: "",
+  bio: "",
+  specialization: "",
+  isActive: true,
+  isSetup: true
+};
+
+const initialCreateProfile = {
+  username: "",
+  ownerEmail: "",
+  name: "",
+  title: "",
+  bio: "",
+  theme: "mint",
+  profileType: "general"
+};
+
+const initialCreateArtist = {
+  username: "",
+  email: "",
   name: "",
   bio: "",
   specialization: "",
   isActive: true
 };
+
 
 const initialSchoolForm = {
   name: "",
@@ -74,6 +96,8 @@ function App() {
   const [globalStats, setGlobalStats] = useState(null);
   const [editing, setEditing] = useState(initialEdit);
   const [editingArtist, setEditingArtist] = useState(initialArtistEdit);
+  const [creatingProfile, setCreatingProfile] = useState(initialCreateProfile);
+  const [creatingArtist, setCreatingArtist] = useState(initialCreateArtist);
   const [schools, setSchools] = useState([]);
   const [schoolForm, setSchoolForm] = useState(initialSchoolForm);
   const schoolCreateFormRef = useRef(null);
@@ -92,8 +116,60 @@ function App() {
   const [photoUploading, setPhotoUploading] = useState(false);
   /** Profile URL returned by API after creating a student (for NFC / sharing) */
   const [lastCreatedStudentUrl, setLastCreatedStudentUrl] = useState("");
+  const [lastCreatedProfileUrl, setLastCreatedProfileUrl] = useState("");
   const [profileUrlCopied, setProfileUrlCopied] = useState(false);
   const [tableCopiedStudentId, setTableCopiedStudentId] = useState("");
+  const [availabilityConflicts, setAvailabilityConflicts] = useState({ username: null, email: null });
+  const [availabilitySuggestions, setAvailabilitySuggestions] = useState([]);
+
+
+  const lastChecked = useRef({ username: "", email: "" });
+  const lastSuggestionsUsername = useRef("");
+
+
+  // Real-time availability check for creating profiles
+  useEffect(() => {
+    const u = (activeSection === "artist" ? creatingArtist.username : creatingProfile.username) || "";
+    const e = (activeSection === "artist" ? creatingArtist.email : creatingProfile.ownerEmail) || "";
+
+    if (u === lastChecked.current.username && e === lastChecked.current.email) return;
+
+    const timer = setTimeout(async () => {
+      // Clear suggestions only if username changed
+      if (u !== lastChecked.current.username) {
+        setAvailabilitySuggestions([]);
+      }
+      
+      lastChecked.current = { username: u, email: e };
+
+      if (!u && !e) {
+        setAvailabilityConflicts({ username: null, email: null });
+        return;
+      }
+
+      try {
+        const res = await adminApi.checkAvailability({ username: u, email: e });
+        setAvailabilityConflicts(res.conflicts || { username: null, email: null });
+        
+        // Only update suggestions if the username has changed since last time we got suggestions
+        if (res.suggestions && u !== lastSuggestionsUsername.current) {
+          setAvailabilitySuggestions(res.suggestions);
+          lastSuggestionsUsername.current = u;
+        }
+
+      } catch (err) {
+        console.warn("Availability check failed", err);
+      }
+    }, 500); // Debounce 500ms
+    return () => clearTimeout(timer);
+  }, [
+    creatingProfile.username, 
+    creatingProfile.ownerEmail, 
+    creatingArtist.username, 
+    creatingArtist.email, 
+    activeSection
+  ]);
+
 
   const counts = useMemo(() => {
     const total = profiles.length;
@@ -153,9 +229,22 @@ function App() {
       setProfileUrlCopied(false);
       setTableCopiedStudentId("");
     }
+    if (section === "schools" && !viewSchoolId) {
+      setStudentForm(initialStudentForm);
+      setStudentSearch("");
+      setLastCreatedStudentUrl("");
+      setLastCreatedProfileUrl("");
+      setProfileUrlCopied(false);
+      setTableCopiedStudentId("");
+    }
     if (section === "general") setTypeFilter("general");
     else if (section === "restaurant") setTypeFilter("restaurant");
     else setTypeFilter("all");
+    
+    setLastCreatedProfileUrl("");
+    setSearch("");
+    setCreatingProfile({ ...initialCreateProfile, profileType: section === "restaurant" ? "restaurant" : "general" });
+    setCreatingArtist(initialCreateArtist);
   }
 
   async function loadSchoolStudents(schoolId, classId) {
@@ -259,7 +348,7 @@ function App() {
   }
 
   function profileBaseUrlFromEnv() {
-    const u = import.meta.env.VITE_PUBLIC_PROFILE_URL || import.meta.env.VITE_FRONTEND_URL || "https://nanoprofiles.com";
+    const u = import.meta.env.VITE_PUBLIC_PROFILE_URL || import.meta.env.VITE_FRONTEND_URL || (typeof window !== "undefined" ? window.location.origin : "");
     return String(u).replace(/\/$/, "");
   }
 
@@ -579,6 +668,34 @@ function App() {
     }
   }
 
+  async function onCreateProfile(e) {
+    e.preventDefault();
+    if (!creatingProfile.username || !creatingProfile.ownerEmail) {
+      setMessage("Username and Owner Email are mandatory.");
+      return;
+    }
+    setLoading(true);
+    setMessage("");
+    try {
+      const res = await adminApi.createProfile(creatingProfile);
+      setMessage("Profile created successfully");
+      
+      const username = res.data?.username;
+      if (username) {
+        const base = profileBaseUrlFromEnv();
+        const type = res.data?.profileType === "restaurant" ? "restaurant" : "link";
+        setLastCreatedProfileUrl(`${base}/${type}/${username}`);
+      }
+
+      setCreatingProfile({ ...initialCreateProfile, profileType: activeSection === "restaurant" ? "restaurant" : "general" });
+      await loadDashboard();
+    } catch (err) {
+      setMessage(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function onDeleteProfile(profileId) {
     const ok = window.confirm("Delete this profile?");
     if (!ok) return;
@@ -603,12 +720,47 @@ function App() {
     setMessage("");
     try {
       await adminApi.updateArtist(editingArtist._id, {
+        artistId: editingArtist.artistId,
         name: editingArtist.name,
         bio: editingArtist.bio,
         specialization: editingArtist.specialization,
-        isActive: editingArtist.isActive
+        isActive: editingArtist.isActive,
+        isSetup: editingArtist.isSetup
       });
       setMessage("Artist updated successfully");
+      await loadDashboard();
+    } catch (err) {
+      setMessage(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function onCreateArtist(e) {
+    e.preventDefault();
+    if (!creatingArtist.username || !creatingArtist.email) {
+      setMessage("Username and Email are mandatory.");
+      return;
+    }
+    setLoading(true);
+    setMessage("");
+    try {
+      const res = await adminApi.createArtist({
+        artistId: creatingArtist.username,
+        email: creatingArtist.email,
+        name: creatingArtist.name,
+        bio: creatingArtist.bio,
+        specialization: creatingArtist.specialization,
+        isActive: creatingArtist.isActive
+      });
+      setMessage("Artist profile created successfully");
+
+      const artistId = res.data?.artistId;
+      if (artistId) {
+        setLastCreatedProfileUrl(`${profileBaseUrlFromEnv()}/artist/${artistId}`);
+      }
+
+      setCreatingArtist(initialCreateArtist);
       await loadDashboard();
     } catch (err) {
       setMessage(err.message);
@@ -900,67 +1052,158 @@ function App() {
             </tbody>
           </table>
         </div>
+        
+        <div className="adminFormsColumn">
+          <form className="card" onSubmit={onCreateProfile}>
+            <h2>Create {activeSection === "restaurant" ? "Restaurant" : "General"} Profile</h2>
+            <label>
+              Username (mandatory)
+              <input
+                value={creatingProfile.username || ""}
+                onChange={(e) => setCreatingProfile((p) => ({ ...p, username: e.target.value }))}
+                placeholder="unique_username"
+                required
+              />
+              {availabilityConflicts.username && (
+                <>
+                  <p className="fieldErrorMsg">{availabilityConflicts.username}</p>
+                  {availabilitySuggestions.length > 0 && (
+                    <div className="suggestionsBox">
+                      <span>Try:</span>
+                      {availabilitySuggestions.map(s => (
+                        <button 
+                          key={s} 
+                          type="button" 
+                          className="suggestionBtn"
+                          onClick={() => setCreatingProfile(p => ({ ...p, username: s }))}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
 
-        <form className="card" onSubmit={onSaveProfile}>
-          <h2>Edit Profile</h2>
-          <p>Select a profile from the table to edit.</p>
-          <label>
-            Name
-            <input
-              value={editing.name || ""}
-              onChange={(e) => setEditing((p) => ({ ...p, name: e.target.value }))}
-            />
-          </label>
-          <label>
-            Username
-            <input
-              value={editing.username || ""}
-              onChange={(e) => setEditing((p) => ({ ...p, username: e.target.value }))}
-            />
-          </label>
-          <label>
-            Title
-            <input
-              value={editing.title || ""}
-              onChange={(e) => setEditing((p) => ({ ...p, title: e.target.value }))}
-            />
-          </label>
-          <label>
-            Bio
-            <textarea
-              value={editing.bio || ""}
-              onChange={(e) => setEditing((p) => ({ ...p, bio: e.target.value }))}
-              rows={4}
-            />
-          </label>
-          <label>
-            Profile Type
-            <select
-              value={editing.profileType || "general"}
-              onChange={(e) => setEditing((p) => ({ ...p, profileType: e.target.value }))}
-            >
-              <option value="general">Other / General</option>
-              <option value="restaurant">Restaurant</option>
-            </select>
-          </label>
-          <label>
-            Theme
-            <select
-              value={editing.theme || "mint"}
-              onChange={(e) => setEditing((p) => ({ ...p, theme: e.target.value }))}
-            >
-              {themeOptions.map((theme) => (
-                <option key={theme} value={theme}>
-                  {theme}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button disabled={!editing._id || loading} type="submit">
-            Save Changes
-          </button>
-          {message ? <p className="msg">{message}</p> : null}
-        </form>
+            </label>
+            <label>
+              Owner Email (mandatory)
+              <input
+                type="email"
+                value={creatingProfile.ownerEmail || ""}
+                onChange={(e) => setCreatingProfile((p) => ({ ...p, ownerEmail: e.target.value }))}
+                placeholder="user@example.com"
+                required
+              />
+              {availabilityConflicts.email && <p className="fieldErrorMsg">{availabilityConflicts.email}</p>}
+            </label>
+
+            <label>
+              Full Name
+              <input
+                value={creatingProfile.name || ""}
+                onChange={(e) => setCreatingProfile((p) => ({ ...p, name: e.target.value }))}
+              />
+            </label>
+            <label>
+              Title
+              <input
+                value={creatingProfile.title || ""}
+                onChange={(e) => setCreatingProfile((p) => ({ ...p, title: e.target.value }))}
+              />
+            </label>
+            <label>
+              Bio
+              <textarea
+                value={creatingProfile.bio || ""}
+                onChange={(e) => setCreatingProfile((p) => ({ ...p, bio: e.target.value }))}
+                rows={3}
+              />
+            </label>
+            {/* Availability error block removed in favor of field-specific errors */}
+            <button disabled={loading || !!(availabilityConflicts.username || availabilityConflicts.email)} type="submit" className="btnPrimary">
+
+              Create Profile
+            </button>
+            {lastCreatedProfileUrl && (activeSection === "general" || activeSection === "restaurant") ? (
+              <div className="studentProfileUrlBox" style={{ marginTop: 20 }}>
+                <span className="studentProfileUrlLabel">Profile URL</span>
+                <div className="studentProfileUrlRow">
+                  <input readOnly className="studentProfileUrlInput" value={lastCreatedProfileUrl} />
+                  <a
+                    className="studentProfileUrlOpen"
+                    href={lastCreatedProfileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Open
+                  </a>
+                </div>
+              </div>
+            ) : null}
+          </form>
+
+          <form className="card" onSubmit={onSaveProfile}>
+            <h2>Edit Profile</h2>
+            <p>Select a profile from the table to edit.</p>
+            <label>
+              Name
+              <input
+                value={editing.name || ""}
+                onChange={(e) => setEditing((p) => ({ ...p, name: e.target.value }))}
+              />
+            </label>
+            <label>
+              Username
+              <input
+                value={editing.username || ""}
+                onChange={(e) => setEditing((p) => ({ ...p, username: e.target.value }))}
+              />
+            </label>
+            <label>
+              Title
+              <input
+                value={editing.title || ""}
+                onChange={(e) => setEditing((p) => ({ ...p, title: e.target.value }))}
+              />
+            </label>
+            <label>
+              Bio
+              <textarea
+                value={editing.bio || ""}
+                onChange={(e) => setEditing((p) => ({ ...p, bio: e.target.value }))}
+                rows={4}
+              />
+            </label>
+            <label>
+              Profile Type
+              <select
+                value={editing.profileType || "general"}
+                onChange={(e) => setEditing((p) => ({ ...p, profileType: e.target.value }))}
+              >
+                <option value="general">Other / General</option>
+                <option value="restaurant">Restaurant</option>
+              </select>
+            </label>
+            <label>
+              Theme
+              <select
+                value={editing.theme || "mint"}
+                onChange={(e) => setEditing((p) => ({ ...p, theme: e.target.value }))}
+              >
+                {themeOptions.map((theme) => (
+                  <option key={theme} value={theme}>
+                    {theme}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button disabled={!editing._id || loading} type="submit">
+              Save Changes
+            </button>
+            {message ? <p className="msg">{message}</p> : null}
+          </form>
+        </div>
       </div>
       ) : null}
 
@@ -972,9 +1215,11 @@ function App() {
             <thead>
               <tr>
                 <th>Name</th>
-                <th>Artist ID</th>
+                <th>Username</th>
                 <th>Email</th>
+                <th>Setup</th>
                 <th>Active</th>
+                <th>Links</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -984,7 +1229,28 @@ function App() {
                   <td>{artist.name || "-"}</td>
                   <td>{artist.artistId || "-"}</td>
                   <td>{artist.email || "-"}</td>
+                  <td>{artist.isSetup ? "✅" : "❌"}</td>
                   <td>{artist.isActive ? "Yes" : "No"}</td>
+                  <td>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <a 
+                        href={`${profileBaseUrlFromEnv()}/artist/${artist.artistId}`} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        style={{ fontSize: '11px', color: '#6366f1', textDecoration: 'none', fontWeight: 700, background: 'rgba(99, 102, 241, 0.1)', padding: '2px 6px', borderRadius: '4px', whiteSpace: 'nowrap', display: 'inline-block' }}
+                      >
+                        👤 Profile
+                      </a>
+                      <a 
+                        href={`${profileBaseUrlFromEnv()}/a/${artist.artistId}/art`} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        style={{ fontSize: '11px', color: '#10b981', textDecoration: 'none', fontWeight: 700, background: 'rgba(16, 185, 129, 0.1)', padding: '2px 6px', borderRadius: '4px', whiteSpace: 'nowrap', display: 'inline-block' }}
+                      >
+                        🎨 Master Art
+                      </a>
+                    </div>
+                  </td>
                   <td className="actions">
                     <button onClick={() => setEditingArtist({ ...initialArtistEdit, ...artist })}>
                       Edit
@@ -1001,55 +1267,165 @@ function App() {
               ))}
               {artists.length === 0 ? (
                 <tr>
-                  <td colSpan={5}>No artists found.</td>
+                  <td colSpan={7}>No artists found.</td>
                 </tr>
               ) : null}
             </tbody>
           </table>
         </div>
 
-        <form className="card" onSubmit={onSaveArtist}>
-          <h2>Edit Artist</h2>
-          <p>Select an artist from table to edit.</p>
-          <label>
-            Name
-            <input
-              value={editingArtist.name || ""}
-              onChange={(e) => setEditingArtist((p) => ({ ...p, name: e.target.value }))}
-            />
-          </label>
-          <label>
-            Specialization
-            <input
-              value={editingArtist.specialization || ""}
-              onChange={(e) => setEditingArtist((p) => ({ ...p, specialization: e.target.value }))}
-            />
-          </label>
-          <label>
-            Bio
-            <textarea
-              rows={4}
-              value={editingArtist.bio || ""}
-              onChange={(e) => setEditingArtist((p) => ({ ...p, bio: e.target.value }))}
-            />
-          </label>
-          <label>
-            Active
-            <select
-              value={String(Boolean(editingArtist.isActive))}
-              onChange={(e) =>
-                setEditingArtist((p) => ({ ...p, isActive: e.target.value === "true" }))
-              }
-            >
-              <option value="true">Yes</option>
-              <option value="false">No</option>
-            </select>
-          </label>
-          <button disabled={!editingArtist._id || loading} type="submit">
-            Save Artist
-          </button>
-          {message ? <p className="msg">{message}</p> : null}
-        </form>
+        <div className="adminFormsColumn">
+          <form className="card" onSubmit={onCreateArtist}>
+            <h2>Create Artist Profile</h2>
+            <label>
+              Username (mandatory)
+              <input
+                value={creatingArtist.username || ""}
+                onChange={(e) => setCreatingArtist((p) => ({ ...p, username: e.target.value }))}
+                placeholder="unique_username"
+                required
+              />
+              {availabilityConflicts.username && (
+                <>
+                  <p className="fieldErrorMsg">{availabilityConflicts.username}</p>
+                  {availabilitySuggestions.length > 0 && (
+                    <div className="suggestionsBox">
+                      <span>Try:</span>
+                      {availabilitySuggestions.map(s => (
+                        <button 
+                          key={s} 
+                          type="button" 
+                          className="suggestionBtn"
+                          onClick={() => setCreatingArtist(p => ({ ...p, username: s }))}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+
+            </label>
+            <label>
+              Email (mandatory)
+              <input
+                type="email"
+                value={creatingArtist.email || ""}
+                onChange={(e) => setCreatingArtist((p) => ({ ...p, email: e.target.value }))}
+                placeholder="artist@example.com"
+                required
+              />
+              {availabilityConflicts.email && <p className="fieldErrorMsg">{availabilityConflicts.email}</p>}
+            </label>
+
+            <label>
+              Full Name
+              <input
+                value={creatingArtist.name || ""}
+                onChange={(e) => setCreatingArtist((p) => ({ ...p, name: e.target.value }))}
+              />
+            </label>
+            <label>
+              Specialization
+              <input
+                value={creatingArtist.specialization || ""}
+                onChange={(e) => setCreatingArtist((p) => ({ ...p, specialization: e.target.value }))}
+              />
+            </label>
+            <label>
+              Bio
+              <textarea
+                rows={3}
+                value={creatingArtist.bio || ""}
+                onChange={(e) => setCreatingArtist((p) => ({ ...p, bio: e.target.value }))}
+              />
+            </label>
+            {/* Availability error block removed in favor of field-specific errors */}
+            <button disabled={loading || !!(availabilityConflicts.username || availabilityConflicts.email)} type="submit" className="btnPrimary">
+
+              Create Artist
+            </button>
+            {lastCreatedProfileUrl && activeSection === "artist" ? (
+              <div className="studentProfileUrlBox" style={{ marginTop: 20 }}>
+                <span className="studentProfileUrlLabel">Artist Profile URL</span>
+                <div className="studentProfileUrlRow">
+                  <input readOnly className="studentProfileUrlInput" value={lastCreatedProfileUrl} />
+                  <a
+                    className="studentProfileUrlOpen"
+                    href={lastCreatedProfileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Open
+                  </a>
+                </div>
+              </div>
+            ) : null}
+          </form>
+
+          <form className="card" onSubmit={onSaveArtist}>
+            <h2>Edit Artist</h2>
+            <p>Select an artist from table to edit.</p>
+            <label>
+              Username (URL slug)
+              <input
+                value={editingArtist.artistId || ""}
+                onChange={(e) => setEditingArtist((p) => ({ ...p, artistId: e.target.value }))}
+              />
+            </label>
+            <label>
+              Name
+              <input
+                value={editingArtist.name || ""}
+                onChange={(e) => setEditingArtist((p) => ({ ...p, name: e.target.value }))}
+              />
+            </label>
+            <label>
+              Specialization
+              <input
+                value={editingArtist.specialization || ""}
+                onChange={(e) => setEditingArtist((p) => ({ ...p, specialization: e.target.value }))}
+              />
+            </label>
+            <label>
+              Bio
+              <textarea
+                rows={4}
+                value={editingArtist.bio || ""}
+                onChange={(e) => setEditingArtist((p) => ({ ...p, bio: e.target.value }))}
+              />
+            </label>
+            <label>
+              Active
+              <select
+                value={String(Boolean(editingArtist.isActive))}
+                onChange={(e) =>
+                  setEditingArtist((p) => ({ ...p, isActive: e.target.value === "true" }))
+                }
+              >
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select>
+            </label>
+            <label>
+              Setup Complete (Skips onboarding)
+              <select
+                value={String(Boolean(editingArtist.isSetup))}
+                onChange={(e) =>
+                  setEditingArtist((p) => ({ ...p, isSetup: e.target.value === "true" }))
+                }
+              >
+                <option value="true">Yes (Direct to Dashboard)</option>
+                <option value="false">No (Show Onboarding)</option>
+              </select>
+            </label>
+            <button disabled={!editingArtist._id || loading} type="submit">
+              Save Artist
+            </button>
+            {message ? <p className="msg">{message}</p> : null}
+          </form>
+        </div>
       </div>
       ) : null}
 

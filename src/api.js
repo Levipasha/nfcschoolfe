@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || "https://microidentity.nanoprofiles.com";
+const API_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? window.location.origin : "");
 const TOKEN_KEY = "nfc_admin_token";
 
 export const themeOptions = [
@@ -163,6 +163,16 @@ export const adminApi = {
     const suffix = search ? `?search=${encodeURIComponent(search)}` : "";
     return request(`/api/admin/artists${suffix}`);
   },
+  createProfile: (body) =>
+    request("/api/admin/general-profiles", {
+      method: "POST",
+      body: JSON.stringify(body)
+    }),
+  createArtist: (body) =>
+    request("/api/admin/artists", {
+      method: "POST",
+      body: JSON.stringify(body)
+    }),
   updateProfile: (id, body) =>
     request(`/api/admin/general-profiles/${id}`, {
       method: "PUT",
@@ -180,7 +190,14 @@ export const adminApi = {
   deleteArtist: (id) =>
     request(`/api/admin/artists/${encodeURIComponent(id)}/delete`, {
       method: "POST"
-    })
+    }),
+  checkAvailability: (query = {}) => {
+    const searchParams = new URLSearchParams();
+    if (query.username) searchParams.set("username", query.username);
+    if (query.email) searchParams.set("email", query.email);
+    if (query.excludeId) searchParams.set("excludeId", query.excludeId);
+    return request(`/api/admin/check-availability?${searchParams.toString()}`);
+  }
 };
 
 /** Public GET /api/p/:token — no JWT (NFC / student profile links). Uses same API as admin app origin. */
