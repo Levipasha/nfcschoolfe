@@ -13,7 +13,7 @@ body {
 }
 
 .wrap {
-  max-width: 1200px;
+  max-width: 1440px;
   margin: 0 auto;
   padding: 20px;
 }
@@ -536,6 +536,22 @@ td {
 
 @media (max-width: 900px) {
   .grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.artistGrid {
+  grid-template-columns: 1fr !important;
+}
+
+.artistGrid .adminFormsColumn {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 800px) {
+  .artistGrid .adminFormsColumn {
     grid-template-columns: 1fr;
   }
 }

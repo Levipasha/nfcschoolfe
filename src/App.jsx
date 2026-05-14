@@ -1024,6 +1024,7 @@ function App() {
               <tr>
                 <th>Name</th>
                 <th>Username</th>
+                <th>Email</th>
                 <th>Type</th>
                 <th>Theme</th>
                 <th>Actions</th>
@@ -1034,6 +1035,7 @@ function App() {
                 <tr key={profile._id}>
                   <td>{profile.name || "-"}</td>
                   <td>{profile.username}</td>
+                  <td>{profile.ownerEmail || "-"}</td>
                   <td>{profile.profileType || "general"}</td>
                   <td>{profile.theme || "mint"}</td>
                   <td className="actions">
@@ -1046,7 +1048,7 @@ function App() {
               ))}
               {profiles.length === 0 && !loading ? (
                 <tr>
-                  <td colSpan={5}>No profiles found.</td>
+                  <td colSpan={6}>No profiles found.</td>
                 </tr>
               ) : null}
             </tbody>
@@ -1208,7 +1210,7 @@ function App() {
       ) : null}
 
       {activeSection === "artist" ? (
-      <div className="grid2">
+      <div className="grid2 artistGrid">
         <div className="card tableCard">
           <h2>Artist Profiles</h2>
           <table>
@@ -1217,8 +1219,6 @@ function App() {
                 <th>Name</th>
                 <th>Username</th>
                 <th>Email</th>
-                <th>Setup</th>
-                <th>Active</th>
                 <th>Links</th>
                 <th>Actions</th>
               </tr>
@@ -1229,8 +1229,6 @@ function App() {
                   <td>{artist.name || "-"}</td>
                   <td>{artist.artistId || "-"}</td>
                   <td>{artist.email || "-"}</td>
-                  <td>{artist.isSetup ? "✅" : "❌"}</td>
-                  <td>{artist.isActive ? "Yes" : "No"}</td>
                   <td>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       <a 
@@ -1267,7 +1265,7 @@ function App() {
               ))}
               {artists.length === 0 ? (
                 <tr>
-                  <td colSpan={7}>No artists found.</td>
+                  <td colSpan={5}>No artists found.</td>
                 </tr>
               ) : null}
             </tbody>
